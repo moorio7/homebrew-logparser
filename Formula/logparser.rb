@@ -33,5 +33,3 @@ class Logparser < Formula
   end
 end
 
-
-
