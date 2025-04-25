@@ -3,7 +3,7 @@
 
 # Налаштування
 VERSION="0.4.1"
-TEMP_DIR="/tmp/logparser_install"
+TEMP_DIR="/private/tmp/logparser_install"
 
 # URL репозиторію для завантаження
 REPO_URL="https://github.com/moorio7/homebrew-logparser/releases/download/v$VERSION"
@@ -117,31 +117,106 @@ main() {
 
     # Пошук DMG файлу
     DMG_FILE=$(ls *.dmg 2>/dev/null)
+
+    # Якщо DMG файл не знайдено, виводимо помилку
     if [ -z "$DMG_FILE" ]; then
       print_error "DMG файл не знайдено після розшифрування"
+      print_message "Спробуйте розшифрувати файл вручну за допомогою команди:"
+      print_message "openssl enc -aes-256-cbc -d -salt -in LogParser-$VERSION-macos-$ARCH_TYPE.enc -out LogParser-$VERSION-macos-$ARCH_TYPE.dmg -k ENCRYPTION_KEY"
       exit 1
     fi
 
-    # Монтування DMG файлу
-    print_message "Монтування DMG файлу..."
-    MOUNT_POINT=$(hdiutil attach "$DMG_FILE" -nobrowse -noautoopen | grep Apple_HFS | awk '{print $3}')
+    # Встановлення LogParser.app безпосередньо з DMG-файлу
+    print_message "Встановлення LogParser.app безпосередньо з DMG-файлу..."
 
-    if [ -z "$MOUNT_POINT" ]; then
-      print_error "Не вдалося змонтувати DMG файл"
-      exit 1
+    # Створення тимчасового каталогу для розпакування DMG
+    EXTRACT_DIR="$TEMP_DIR/extracted_dmg"
+    mkdir -p "$EXTRACT_DIR"
+
+    # Розпакування DMG-файлу
+    print_message "Розпакування DMG-файлу..."
+    if ! 7z x "$DMG_FILE" -o"$EXTRACT_DIR" > /dev/null; then
+      print_message "Помилка розпакування DMG-файлу за допомогою 7z, спробуємо інший спосіб..."
+
+      # Альтернативний спосіб: використання hdiutil і cp
+      print_message "Спроба використання hdiutil для монтування DMG-файлу..."
+      MOUNT_POINT=$(hdiutil attach "$DMG_FILE" -nobrowse -noautoopen | grep Apple_HFS | awk '{print $3}')
+
+      if [ -n "$MOUNT_POINT" ]; then
+        print_message "DMG змонтовано в: $MOUNT_POINT"
+        print_message "Вміст змонтованого тому:"
+        ls -la "$MOUNT_POINT"
+
+        # Пошук LogParser.app
+        APP_PATH=$(find "$MOUNT_POINT" -name "LogParser.app" -type d | head -n 1)
+
+        if [ -n "$APP_PATH" ]; then
+          print_message "LogParser.app знайдено за шляхом: $APP_PATH"
+
+          # Видалення старої версії, якщо вона існує
+          if [ -d "/Applications/LogParser.app" ]; then
+            print_message "Видалення старої версії LogParser.app..."
+            rm -rf "/Applications/LogParser.app"
+          fi
+
+          # Копіювання нової версії
+          print_message "Копіювання $APP_PATH в /Applications/..."
+          cp -R "$APP_PATH" /Applications/ || {
+            print_error "Помилка копіювання LogParser.app в /Applications"
+            hdiutil detach "$MOUNT_POINT" -force
+            exit 1
+          }
+
+          # Відмонтування DMG
+          print_message "Відмонтування DMG..."
+          hdiutil detach "$MOUNT_POINT" -force
+        else
+          print_error "LogParser.app не знайдено в змонтованому томі"
+          print_message "Вміст змонтованого тому:"
+          ls -la "$MOUNT_POINT"
+          hdiutil detach "$MOUNT_POINT" -force
+          exit 1
+        fi
+      else
+        print_error "Не вдалося змонтувати DMG-файл"
+        exit 1
+      fi
+    else
+      # Пошук LogParser.app в розпакованому DMG
+      print_message "Пошук LogParser.app в розпакованому DMG..."
+      print_message "Вміст розпакованого DMG:"
+      find "$EXTRACT_DIR" -type d | sort
+
+      APP_PATH=$(find "$EXTRACT_DIR" -name "LogParser.app" -type d | head -n 1)
+
+      if [ -n "$APP_PATH" ]; then
+        print_message "LogParser.app знайдено за шляхом: $APP_PATH"
+
+        # Видалення старої версії, якщо вона існує
+        if [ -d "/Applications/LogParser.app" ]; then
+          print_message "Видалення старої версії LogParser.app..."
+          rm -rf "/Applications/LogParser.app"
+        fi
+
+        # Копіювання нової версії
+        print_message "Копіювання $APP_PATH в /Applications/..."
+        cp -R "$APP_PATH" /Applications/ || {
+          print_error "Помилка копіювання LogParser.app в /Applications"
+          exit 1
+        }
+      else
+        print_error "LogParser.app не знайдено в розпакованому DMG"
+        exit 1
+      fi
     fi
-
-    # Копіювання в Applications
-    print_message "Копіювання LogParser.app в /Applications..."
-    [ -d "/Applications/LogParser.app" ] && rm -rf "/Applications/LogParser.app"
-    cp -R "$MOUNT_POINT/LogParser.app" /Applications/
 
     # Видалення з карантину
     print_message "Видалення з карантину..."
-    xattr -rd com.apple.quarantine "/Applications/LogParser.app" || print_warning "Помилка видалення з карантину"
-
-    # Відмонтування DMG
-    hdiutil detach "$MOUNT_POINT" -force || print_warning "Помилка відмонтування DMG"
+    if [ -d "/Applications/LogParser.app" ]; then
+      xattr -rd com.apple.quarantine "/Applications/LogParser.app" || print_warning "Помилка видалення з карантину"
+    else
+      print_error "Не вдалося знайти /Applications/LogParser.app для видалення з карантину"
+    fi
 
     print_success "Встановлено в /Applications"
     open "/Applications/LogParser.app" || print_warning "Помилка запуску додатку"
