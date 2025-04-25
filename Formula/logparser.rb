@@ -1,7 +1,7 @@
 class Logparser < Formula
   desc "Аналізатор лог-файлів з підтримкою різних форматів та зручним інтерфейсом"
   homepage "https://github.com/moorio7/LogParser"
-  version "0.4.1"
+  version "0.4.11"
 
   # Використовуємо скрипт встановлення для зашифрованих файлів
   url "https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser.sh"
@@ -32,4 +32,5 @@ class Logparser < Formula
     assert_predicate bin/"install-logparser", :exist?
   end
 end
+
 

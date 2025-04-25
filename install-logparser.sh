@@ -3,7 +3,7 @@
 # Цей скрипт використовується для встановлення LogParser з https://github.com/moorio7/LogParser
 
 # Налаштування
-VERSION="0.4.1"
+VERSION="0.4.11"
 TEMP_DIR="/tmp/logparser_install"
 
 # URL репозиторію для завантаження
@@ -235,6 +235,7 @@ main() {
 }
 
 main
+
 
 
 
