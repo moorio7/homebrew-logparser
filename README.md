@@ -38,7 +38,13 @@
 
 ```bash
 brew update
+```
+
+```bash
 brew upgrade logparser
+```
+
+```bash
 install-logparser
 ```
 
@@ -48,6 +54,9 @@ install-logparser
 
 ```bash
 brew reinstall logparser
+```
+
+```bash
 install-logparser
 ```
 
@@ -55,19 +64,24 @@ install-logparser
 
 ##### Проблеми з кешем Homebrew
 
-Якщо виникають помилки з кешем або хешами:
+Очистити кеш Homebrew:
 
 ```bash
-# Очистити кеш Homebrew
 brew cleanup
+```
+
+```bash
 brew cleanup --prune=all
+```
 
-# Оновити Homebrew та формули
+Оновити Homebrew та формули:
+
+```bash
 brew update
-brew update-reset
+```
 
-# Перевстановити формулу
-brew reinstall logparser
+```bash
+brew update-reset
 ```
 
 ##### Проблеми з хешами
@@ -77,25 +91,16 @@ brew reinstall logparser
 ```bash
 # Очистити кеш завантажень
 rm -rf "$(brew --cache)/downloads/moorio7-logparser-*"
+```
 
-# Оновити формулу та перевстановити
+```bash
+# Оновити формулу
 brew update
+```
+
+```bash
+# Перевстановити
 brew reinstall logparser
-```
-
-##### Проблеми з версіями
-
-Якщо потрібно встановити конкретну версію:
-
-```bash
-# Встановити конкретну версію (наприклад, 0.4.1)
-brew install logparser@0.4.1
-```
-
-Для перевірки доступних версій:
-
-```bash
-brew info logparser
 ```
 
 ##### Проблеми з правами доступу
@@ -105,30 +110,44 @@ brew info logparser
 ```bash
 # Виправити права доступу для Homebrew
 sudo chown -R $(whoami) $(brew --prefix)/*
+```
 
+```bash
 # Перевстановити формулу
 brew reinstall logparser
 ```
 
-##### Повне скидання
+##### Повне скидання Homebrew
 
 Для повного скидання та перевстановлення:
 
 ```bash
 # Видалити формулу
 brew uninstall --force logparser
+```
 
+```bash
 # Видалити tap
 brew untap moorio7/logparser
+```
 
+```bash
 # Очистити кеш
 brew cleanup --prune=all
+```
 
+```bash
 # Додати tap знову
 brew tap moorio7/logparser
+```
 
+```bash
 # Встановити формулу
 brew install logparser
+```
+
+```bash
+# Запустити скрипт встановлення
 install-logparser
 ```
 
@@ -175,49 +194,6 @@ brew untap moorio7/logparser
 - Зручний інтерфейс користувача
 - Фільтрація та пошук у логах
 - Підсвічування синтаксису
-- Експорт результатів
-
-## Вирішення проблем з версіями
-
-Якщо виникають проблеми з версіями:
-
-1. **Перевірте поточну версію**:
-   - Виконайте команду: `brew info logparser`
-   - Перевірте версію встановленої формули: `brew list --versions logparser`
-
-2. **Перевірте, чи співпадають версії**:
-   - Версія формули: `brew info logparser | grep "logparser:" | awk '{print $3}'`
-   - Версія в репозиторії: `brew tap-info moorio7/logparser --json | grep -o '"version":"[^"]*"'`
-
-3. **Оновіть кеш формул**:
-   - Виконайте команду: `brew update-reset`
-   - Потім: `brew update`
-
-4. **Видаліть стару версію**:
-   - Виконайте команду: `brew uninstall --force logparser`
-   - Очистіть кеш: `brew cleanup --prune=all`
-
-5. **Встановіть конкретну версію**:
-   - Виконайте команду: `brew install logparser@X.Y.Z`
-
-6. **Повне скидання Homebrew**:
-   Якщо проблеми з версіями не вирішуються:
-   ```bash
-   # Видаліть всі tap
-   brew untap --force moorio7/logparser
-
-   # Очистіть кеш
-   brew cleanup --prune=all
-
-   # Скиньте Homebrew
-   cd "$(brew --repo)" && git reset --hard && git clean -df
-
-   # Додайте tap знову
-   brew tap moorio7/logparser
-
-   # Встановіть LogParser
-   brew install logparser
-   ```
 
 ## Безпека
 
