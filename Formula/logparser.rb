@@ -5,7 +5,7 @@ class Logparser < Formula
 
   # Використовуємо скрипт встановлення для зашифрованих файлів
   url "https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser.sh"
-  sha256 "409ac3b6afff219a24595ae79a557cbdbc98bddaf745d04d22b27f0e3cdce9c2"
+  sha256 "f26f490ce34e26496467ea14022954979dbdbb74e4e8e73477d45ac58c574e67"
 
   # Залежності
   depends_on "p7zip"
@@ -30,5 +30,10 @@ class Logparser < Formula
   test do
     # Перевіряємо, чи скрипт встановлення існує
     assert_predicate bin/"install-logparser", :exist?
+
+    # Для macOS перевіряємо, чи можемо знайти змонтовані томи
+    if OS.mac?
+      system "ls", "-la", "/Volumes/"
+    end
   end
 end

@@ -138,9 +138,35 @@ main() {
     if ! 7z x "$DMG_FILE" -o"$EXTRACT_DIR" > /dev/null; then
       print_message "Помилка розпакування DMG-файлу за допомогою 7z, спробуємо інший спосіб..."
 
+      # Перевірка і відмонтування існуючих томів LogParser
+      print_message "Перевірка існуючих томів LogParser..."
+      EXISTING_VOLUMES=$(find /Volumes -maxdepth 1 -type d -name "LogParser*" 2>/dev/null)
+
+      if [ -n "$EXISTING_VOLUMES" ]; then
+        print_message "Знайдено існуючі томи LogParser:"
+        echo "$EXISTING_VOLUMES"
+        print_message "Спроба відмонтування існуючих томів..."
+
+        for VOL in $EXISTING_VOLUMES; do
+          print_message "Відмонтування $VOL..."
+          hdiutil detach "$VOL" -force || print_warning "Не вдалося відмонтувати $VOL"
+        done
+      else
+        print_message "Існуючих томів LogParser не знайдено"
+      fi
+
       # Альтернативний спосіб: використання hdiutil і cp
       print_message "Спроба використання hdiutil для монтування DMG-файлу..."
-      MOUNT_POINT=$(hdiutil attach "$DMG_FILE" -nobrowse -noautoopen | grep Apple_HFS | awk '{print $3}')
+      print_message "Виконуємо: ls -la /Volumes/ (перед монтуванням)"
+      ls -la /Volumes/
+
+      # Монтування DMG файлу
+      MOUNT_OUTPUT=$(hdiutil attach "$DMG_FILE" -nobrowse -noautoopen)
+      print_message "Результат монтування:"
+      echo "$MOUNT_OUTPUT"
+
+      # Пошук змонтованого тому
+      MOUNT_POINT=$(echo "$MOUNT_OUTPUT" | grep Apple_HFS | awk '{print $3}')
 
       if [ -n "$MOUNT_POINT" ]; then
         print_message "DMG змонтовано в: $MOUNT_POINT"
@@ -163,17 +189,19 @@ main() {
           print_message "Копіювання $APP_PATH в /Applications/..."
           cp -R "$APP_PATH" /Applications/ || {
             print_error "Помилка копіювання LogParser.app в /Applications"
+            print_message "Відмонтування DMG..."
             hdiutil detach "$MOUNT_POINT" -force
             exit 1
           }
 
           # Відмонтування DMG
           print_message "Відмонтування DMG..."
-          hdiutil detach "$MOUNT_POINT" -force
+          hdiutil detach "$MOUNT_POINT" -force || print_warning "Помилка відмонтування DMG, продовжуємо..."
         else
           print_error "LogParser.app не знайдено в змонтованому томі"
           print_message "Вміст змонтованого тому:"
           ls -la "$MOUNT_POINT"
+          print_message "Відмонтування DMG..."
           hdiutil detach "$MOUNT_POINT" -force
           exit 1
         fi
@@ -213,13 +241,24 @@ main() {
     # Видалення з карантину
     print_message "Видалення з карантину..."
     if [ -d "/Applications/LogParser.app" ]; then
-      xattr -rd com.apple.quarantine "/Applications/LogParser.app" || print_warning "Помилка видалення з карантину"
+      # Спроба видалення з карантину, але не виходимо з помилкою, якщо файл не в карантині
+      xattr -rd com.apple.quarantine "/Applications/LogParser.app" 2>/dev/null || print_warning "Файл не був у карантині або помилка видалення з карантину"
+
+      # Перевірка прав доступу
+      print_message "Встановлення правильних прав доступу..."
+      chmod -R u+x "/Applications/LogParser.app"
     else
       print_error "Не вдалося знайти /Applications/LogParser.app для видалення з карантину"
     fi
 
-    print_success "Встановлено в /Applications"
-    open "/Applications/LogParser.app" || print_warning "Помилка запуску додатку"
+    # Перевірка успішного встановлення
+    if [ -d "/Applications/LogParser.app" ]; then
+      print_success "Встановлено в /Applications"
+      print_message "Запуск додатку..."
+      open "/Applications/LogParser.app" || print_warning "Помилка запуску додатку"
+    else
+      print_error "Встановлення не вдалося. LogParser.app не знайдено в /Applications"
+    fi
   elif [ "$OS_TYPE" = "windows" ]; then
     # Розпакування архіву
     print_message "Розпакування архіву..."
