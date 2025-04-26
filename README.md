@@ -1,4 +1,12 @@
-<meta name="robots" content="noindex">
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="bingbot" content="noindex, nofollow">
+<meta name="slurp" content="noindex, nofollow">
+<meta name="duckduckbot" content="noindex, nofollow">
+<meta name="baiduspider" content="noindex, nofollow">
+<meta name="yandexbot" content="noindex, nofollow">
+<meta name="sogou" content="noindex, nofollow">
+<meta name="ia_archiver" content="noindex, nofollow">
 
 # Homebrew Tap for LogParser
 
