@@ -96,18 +96,21 @@ brew update-reset
 
 Якщо виникає помилка "SHA256 mismatch":
 
+Очистити кеш завантажень:
+
 ```bash
-# Очистити кеш завантажень
 rm -rf "$(brew --cache)/downloads/moorio7-logparser-*"
 ```
 
+Оновити формулу:
+
 ```bash
-# Оновити формулу
 brew update
 ```
 
+Перевстановити:
+
 ```bash
-# Перевстановити
 brew reinstall logparser
 ```
 
@@ -115,13 +118,15 @@ brew reinstall logparser
 
 Якщо виникають проблеми з правами доступу:
 
+Виправити права доступу для Homebrew:
+
 ```bash
-# Виправити права доступу для Homebrew
 sudo chown -R $(whoami) $(brew --prefix)/*
 ```
 
+Перевстановити формулу:
+
 ```bash
-# Перевстановити формулу
 brew reinstall logparser
 ```
 
@@ -129,33 +134,39 @@ brew reinstall logparser
 
 Для повного скидання та перевстановлення:
 
+Видалити формулу:
+
 ```bash
-# Видалити формулу
 brew uninstall --force logparser
 ```
 
+Видалити tap:
+
 ```bash
-# Видалити tap
 brew untap moorio7/logparser
 ```
 
+Очистити кеш:
+
 ```bash
-# Очистити кеш
 brew cleanup --prune=all
 ```
 
+Додати tap знову:
+
 ```bash
-# Додати tap знову
 brew tap moorio7/logparser
 ```
 
+Встановити формулу:
+
 ```bash
-# Встановити формулу
 brew install logparser
 ```
 
+Запустити скрипт встановлення:
+
 ```bash
-# Запустити скрипт встановлення
 install-logparser
 ```
 
