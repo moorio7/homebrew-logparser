@@ -1,11 +1,11 @@
 class Logparser < Formula
   desc "Аналізатор лог-файлів з підтримкою різних форматів та зручним інтерфейсом"
   homepage "https://github.com/moorio7/LogParser"
-  version "0.4.20"
+  version "0.4.21"
 
   # Використовуємо скрипт встановлення для зашифрованих файлів
   url "https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser.sh"
-  sha256 "7026be52de5022dbff6397b75a777378bc76658a00770265b8d0cff5ec9f1ef7"
+  sha256 "44cebf99a3b9fdab302f57288284dd4e6466ade23359b7c560dcda09c2106da7"
 
   # Залежності
   depends_on "p7zip"
@@ -37,3 +37,5 @@ class Logparser < Formula
     end
   end
 end
+
+
