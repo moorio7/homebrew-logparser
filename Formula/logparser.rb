@@ -1,7 +1,7 @@
 class Logparser < Formula
-  desc "Аналізатор лог-файлів з підтримкою різних форматів та зручним інтерфейсом"
+  desc "Аналізатор лог-файлів з підтримкою різних форматів, зручним інтерфейсом та покращеною роботою з DPI"
   homepage "https://github.com/moorio7/LogParser"
-  version "0.4.22"
+  version "0.4.23"
 
   # Використовуємо скрипт встановлення для зашифрованих файлів
   url "https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser.sh"
