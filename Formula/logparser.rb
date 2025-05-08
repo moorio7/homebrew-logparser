@@ -14,13 +14,24 @@ class Logparser < Formula
   def install
     # Встановлюємо скрипт в bin
     bin.install "install-logparser.sh" => "install-logparser"
+
+    # Встановлюємо права доступу на виконання
     chmod 0755, bin/"install-logparser"
+
+    # Додаткова перевірка прав доступу
+    system "ls", "-la", bin/"install-logparser"
+
+    # Додаткове забезпечення прав доступу через систему
+    system "chmod", "+x", bin/"install-logparser"
   end
 
   def caveats
     <<~EOS
       Для встановлення LogParser виконайте:
         install-logparser
+
+      Якщо виникає помилка з дозволами, виконайте:
+        chmod +x $(which install-logparser)
 
       Вам буде запропоновано ввести ключ для розшифрування файлу.
       Зверніться до розробника програми для отримання ключа.
