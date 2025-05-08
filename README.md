@@ -71,8 +71,7 @@ install-logparser
 <details>
 <summary><b>Вирішення проблем з встановленням</b></summary>
 
-<details>
-<summary><b>Проблеми з кешем Homebrew</b></summary>
+### Проблеми з кешем Homebrew
 
 Очистити кеш Homebrew:
 
@@ -93,10 +92,8 @@ brew update
 ```bash
 brew update-reset
 ```
-</details>
 
-<details>
-<summary><b>Проблеми з хешами</b></summary>
+### Проблеми з хешами
 
 Якщо виникає помилка "SHA256 mismatch":
 
@@ -117,10 +114,8 @@ brew update
 ```bash
 brew reinstall logparser
 ```
-</details>
 
-<details>
-<summary><b>Проблеми з правами доступу</b></summary>
+### Проблеми з правами доступу
 
 Якщо виникають проблеми з правами доступу:
 
@@ -135,10 +130,8 @@ sudo chown -R $(whoami) $(brew --prefix)/*
 ```bash
 brew reinstall logparser
 ```
-</details>
 
-<details>
-<summary><b>Повне скидання Homebrew</b></summary>
+### Повне скидання Homebrew
 
 Для повного скидання та перевстановлення:
 
@@ -181,7 +174,6 @@ brew install logparser
 ```bash
 install-logparser
 ```
-</details>
 </details>
 
 #### Видалення LogParser
