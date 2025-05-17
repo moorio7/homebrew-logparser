@@ -17,12 +17,24 @@ print_error() { echo -e "${RED}$1${NC}"; }
 # Функція для отримання останньої версії з GitHub API
 get_latest_version() {
   # Спроба отримати останню версію
-  LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
+  if [ "$(uname)" = "Darwin" ]; then
+    # macOS використовує BSD grep, який не підтримує -P
+    LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -o '"tag_name": "v[^"]*"' | sed 's/"tag_name": "v\(.*\)"/\1/')
+  else
+    # Linux використовує GNU grep, який підтримує -P
+    LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
+  fi
 
   # Якщо не вдалося отримати останню версію, отримуємо список всіх версій
   if [ -z "$LATEST" ]; then
     print_warning "Не вдалося отримати останню версію через API. Спроба отримати список всіх версій..."
-    LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -Po '"tag_name": "v\K[^"]*' | sort -V -r | head -n 1)
+    if [ "$(uname)" = "Darwin" ]; then
+      # macOS використовує BSD grep, який не підтримує -P
+      LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -o '"tag_name": "v[^"]*"' | sed 's/"tag_name": "v\(.*\)"/\1/' | sort -V -r | head -n 1)
+    else
+      # Linux використовує GNU grep, який підтримує -P
+      LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -Po '"tag_name": "v\K[^"]*' | sort -V -r | head -n 1)
+    fi
   fi
 
   # Якщо все ще не вдалося отримати версію, використовуємо версію за замовчуванням
@@ -42,7 +54,7 @@ print_message "Використовуємо останню версію: $VERSIO
 TEMP_DIR="/private/tmp/logparser_install"
 
 # URL репозиторію для завантаження
-REPO_URL="https://github.com/moorio7/homebrew-logparser/releases/download/v$VERSION"
+REPO_URL="https://github.com/moorio7/homebrew-logparser/releases/download/v${VERSION}"
 
 # Визначення системи
 determine_system() {
@@ -74,14 +86,14 @@ download_file() {
 
   # Формування URL для конкретної платформи
   if [ "$OS_TYPE" = "macos" ]; then
-    ENC_FILE="LogParser-$VERSION-macos-$ARCH_TYPE.enc"
-    SHA_FILE="LogParser-$VERSION-macos-$ARCH_TYPE.sha256"
+    ENC_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.enc"
+    SHA_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.sha256"
   elif [ "$OS_TYPE" = "linux" ]; then
-    ENC_FILE="LogParser-$VERSION-linux.enc"
-    SHA_FILE="LogParser-$VERSION-linux.sha256"
+    ENC_FILE="LogParser-${VERSION}-linux.enc"
+    SHA_FILE="LogParser-${VERSION}-linux.sha256"
   elif [ "$OS_TYPE" = "windows" ]; then
-    ZIP_FILE="LogParser-$VERSION-windows.zip"
-    SHA_FILE="LogParser-$VERSION-windows.zip.sha256"
+    ZIP_FILE="LogParser-${VERSION}-windows.zip"
+    SHA_FILE="LogParser-${VERSION}-windows.zip.sha256"
   fi
 
   if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "linux" ]; then
@@ -141,11 +153,11 @@ main() {
     # Розшифрування файлу
     print_message "Розшифрування файлу..."
     if [ "$OS_TYPE" = "macos" ]; then
-      ENC_FILE="LogParser-$VERSION-macos-$ARCH_TYPE.enc"
-      DMG_FILE="LogParser-$VERSION-macos-$ARCH_TYPE.dmg"
+      ENC_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.enc"
+      DMG_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.dmg"
     elif [ "$OS_TYPE" = "linux" ]; then
-      ENC_FILE="LogParser-$VERSION-linux.enc"
-      DEB_FILE="LogParser-$VERSION-linux.deb"
+      ENC_FILE="LogParser-${VERSION}-linux.enc"
+      DEB_FILE="LogParser-${VERSION}-linux.deb"
     fi
 
     if [ "$OS_TYPE" = "macos" ]; then
