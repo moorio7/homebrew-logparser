@@ -34,21 +34,44 @@ class Logparser < Formula
   end
 
   def caveats
-    <<~EOS
-      Для встановлення LogParser виконайте:
-        install-logparser
+    if OS.mac?
+      <<~EOS
+        Для встановлення LogParser виконайте:
+          install-logparser
 
-      Якщо виникає помилка з дозволами, виконайте:
-        chmod +x $(which install-logparser)
+        Якщо виникає помилка з дозволами, виконайте:
+          chmod +x $(which install-logparser)
 
-      Вам буде запропоновано ввести ключ для розшифрування файлу.
-      Зверніться до розробника програми для отримання ключа.
+        Вам буде запропоновано ввести ключ для розшифрування файлу.
+        Зверніться до розробника програми для отримання ключа.
 
-      Підтримувані платформи:
-      - macOS (Intel та Apple Silicon)
-      - Linux (Debian/Ubuntu)
-      - Windows
-    EOS
+        Підтримувані платформи:
+        - macOS (Intel та Apple Silicon)
+        - Linux (Debian/Ubuntu)
+        - Windows
+      EOS
+    else
+      <<~EOS
+        Для Linux рекомендується використовувати окремий скрипт встановлення:
+          curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
+          chmod +x install-logparser-linux.sh
+          ./install-logparser-linux.sh
+
+        Або ви можете використати стандартний скрипт:
+          install-logparser
+
+        Якщо виникає помилка з дозволами, виконайте:
+          chmod +x $(which install-logparser)
+
+        Вам буде запропоновано ввести ключ для розшифрування файлу.
+        Зверніться до розробника програми для отримання ключа.
+
+        Підтримувані платформи:
+        - macOS (Intel та Apple Silicon)
+        - Linux (Debian/Ubuntu)
+        - Windows
+      EOS
+    end
   end
 
   test do

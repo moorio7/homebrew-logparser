@@ -68,10 +68,31 @@ determine_system() {
     OS_TYPE="macos"
     ARCH=$(uname -m)
     ARCH_TYPE=$([ "$ARCH" = "arm64" ] && echo "arm64" || echo "intel")
+    print_message "Визначено систему: macOS ($ARCH_TYPE)"
   elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     OS_TYPE="linux"
+    print_message "Визначено систему: Linux"
+
+    # Рекомендація використовувати окремий скрипт для Linux
+    print_message "Для Linux рекомендується використовувати окремий скрипт встановлення:"
+    print_message "curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh"
+    print_message "chmod +x install-logparser-linux.sh"
+    print_message "./install-logparser-linux.sh"
+
+    # Запитуємо користувача, чи хоче він продовжити з поточним скриптом
+    print_message "Бажаєте продовжити з поточним скриптом? (y/n)"
+    read -r CONTINUE
+
+    if [[ ! "$CONTINUE" =~ ^[Yy]$ ]]; then
+      print_message "Завантаження окремого скрипту для Linux..."
+      curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
+      chmod +x install-logparser-linux.sh
+      print_message "Запустіть ./install-logparser-linux.sh для встановлення LogParser"
+      exit 0
+    fi
   elif [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
     OS_TYPE="windows"
+    print_message "Визначено систему: Windows"
   else
     print_error "Непідтримувана ОС: $OSTYPE. Підтримуються тільки macOS, Linux та Windows."
     exit 1
