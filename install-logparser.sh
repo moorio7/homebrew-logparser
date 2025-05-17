@@ -60,23 +60,11 @@ REPO_URL="https://github.com/moorio7/homebrew-logparser/releases/download/v${VER
 
 # Визначення системи
 determine_system() {
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    OS_TYPE="macos"
-    ARCH=$(uname -m)
-    ARCH_TYPE=$([ "$ARCH" = "arm64" ] && echo "arm64" || echo "intel")
-    print_message "Визначено систему: macOS ($ARCH_TYPE)"
-  else
-    print_error "Цей скрипт призначений тільки для macOS."
-    print_message "Для Linux використовуйте окремий скрипт встановлення:"
-    print_message "curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh"
-    print_message "chmod +x install-logparser-linux.sh"
-    print_message "./install-logparser-linux.sh"
-    print_message "Для Windows завантажте захищений ZIP-архів з останнього релізу."
-    exit 1
-  fi
+  OS_TYPE="macos"
+  ARCH=$(uname -m)
+  ARCH_TYPE=$([ "$ARCH" = "arm64" ] && echo "arm64" || echo "intel")
+  print_message "Визначено систему: macOS ($ARCH_TYPE)"
 }
-
-# Цей скрипт призначений тільки для macOS
 
 # Завантаження файлу
 download_file() {
