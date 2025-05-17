@@ -111,9 +111,9 @@ brew untap moorio7/logparser
 ### Для Linux
 
 ```bash
-# Встановіть необхідні залежності, якщо їх немає
+# Встановіть curl, якщо його немає
 sudo apt update
-sudo apt install -y curl libegl1
+sudo apt install -y curl
 
 # Швидке встановлення
 curl -L -o install-logparser-linux.sh https://github.com/moorio7/homebrew-logparser/releases/latest/download/install-logparser-linux.sh
@@ -121,15 +121,13 @@ chmod +x install-logparser-linux.sh
 ./install-logparser-linux.sh  # Введіть ключ, коли буде запропоновано
 ```
 
-> **Примітка**: LogParser вимагає бібліотеку libEGL.so.1 для запуску графічного інтерфейсу. Якщо виникає помилка запуску, переконайтеся, що пакет `libegl1` встановлено.
-
 <details>
 <summary><b>Ручне встановлення</b></summary>
 
 ```bash
 # Встановіть необхідні залежності
 sudo apt update
-sudo apt install -y curl openssl libegl1
+sudo apt install -y curl openssl
 
 # Отримання останньої версії
 VERSION=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
