@@ -69,67 +69,30 @@ determine_system() {
     ARCH=$(uname -m)
     ARCH_TYPE=$([ "$ARCH" = "arm64" ] && echo "arm64" || echo "intel")
     print_message "Визначено систему: macOS ($ARCH_TYPE)"
-  elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    OS_TYPE="linux"
-    print_message "Визначено систему: Linux"
-
-    # Рекомендація використовувати окремий скрипт для Linux
-    print_message "Для Linux рекомендується використовувати окремий скрипт встановлення:"
+  else
+    print_error "Цей скрипт призначений тільки для macOS."
+    print_message "Для Linux використовуйте окремий скрипт встановлення:"
     print_message "curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh"
     print_message "chmod +x install-logparser-linux.sh"
     print_message "./install-logparser-linux.sh"
-
-    # Запитуємо користувача, чи хоче він продовжити з поточним скриптом
-    print_message "Бажаєте продовжити з поточним скриптом? (y/n)"
-    read -r CONTINUE
-
-    if [[ ! "$CONTINUE" =~ ^[Yy]$ ]]; then
-      print_message "Завантаження окремого скрипту для Linux..."
-      curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
-      chmod +x install-logparser-linux.sh
-      print_message "Запустіть ./install-logparser-linux.sh для встановлення LogParser"
-      exit 0
-    fi
-  elif [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "win32"* ]]; then
-    OS_TYPE="windows"
-    print_message "Визначено систему: Windows"
-  else
-    print_error "Непідтримувана ОС: $OSTYPE. Підтримуються тільки macOS, Linux та Windows."
+    print_message "Для Windows завантажте захищений ZIP-архів з останнього релізу."
     exit 1
   fi
 }
 
-# Встановлення 7zip для Windows
-install_7zip() {
-  if [ "$OS_TYPE" = "windows" ] && ! command -v 7z &> /dev/null; then
-    print_error "Для розпакування архіву потрібен 7-Zip. Будь ласка, встановіть його з https://www.7-zip.org/"
-    exit 1
-  fi
-}
+# Цей скрипт призначений тільки для macOS
 
 # Завантаження файлу
 download_file() {
   mkdir -p "$TEMP_DIR" && cd "$TEMP_DIR"
 
-  # Формування URL для конкретної платформи
-  if [ "$OS_TYPE" = "macos" ]; then
-    ENC_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.enc"
-    SHA_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.sha256"
-  elif [ "$OS_TYPE" = "linux" ]; then
-    ENC_FILE="LogParser-${VERSION}-linux.enc"
-    SHA_FILE="LogParser-${VERSION}-linux.sha256"
-  elif [ "$OS_TYPE" = "windows" ]; then
-    ZIP_FILE="LogParser-${VERSION}-windows.zip"
-    SHA_FILE="LogParser-${VERSION}-windows.zip.sha256"
-  fi
+  # Формування URL для macOS
+  ENC_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.enc"
+  SHA_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.sha256"
 
-  if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "linux" ]; then
-    print_message "Завантаження зашифрованого файлу для $OS_TYPE..."
-    curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE" || { print_error "Помилка завантаження зашифрованого файлу"; exit 1; }
-  else
-    print_message "Завантаження захищеного архіву для $OS_TYPE..."
-    curl -L -o "$ZIP_FILE" "$REPO_URL/$ZIP_FILE" || { print_error "Помилка завантаження архіву"; exit 1; }
-  fi
+  # Завантаження зашифрованого файлу
+  print_message "Завантаження зашифрованого файлу для macOS..."
+  curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE" || { print_error "Помилка завантаження зашифрованого файлу"; exit 1; }
 
   # Завантаження хеш-файлу для перевірки цілісності
   print_message "Завантаження хеш-файлу..."
@@ -153,51 +116,29 @@ download_file() {
 
 # Встановлення
 main() {
-  print_message "=== Встановлення LogParser $VERSION ==="
+  print_message "=== Встановлення LogParser $VERSION для macOS ==="
   determine_system
   download_file
-
-  if [ "$OS_TYPE" = "windows" ]; then
-    install_7zip
-  fi
 
   print_message "Введіть ключ для розшифрування (ENCRYPTION_KEY):"
   read -s ENCRYPTION_KEY
   echo
 
-  # Розпакування/розшифрування файлу
-  if [ "$OS_TYPE" = "macos" ] || [ "$OS_TYPE" = "linux" ]; then
-    # Встановлення OpenSSL
-    if ! command -v openssl &> /dev/null; then
-      print_message "Встановлення OpenSSL..."
-      if [ "$OS_TYPE" = "macos" ]; then
-        brew install openssl || { print_error "Помилка встановлення OpenSSL"; exit 1; }
-      elif [ "$OS_TYPE" = "linux" ]; then
-        sudo apt-get update && sudo apt-get install -y openssl || { print_error "Помилка встановлення OpenSSL"; exit 1; }
-      fi
-    fi
+  # Встановлення OpenSSL, якщо потрібно
+  if ! command -v openssl &> /dev/null; then
+    print_message "Встановлення OpenSSL..."
+    brew install openssl || { print_error "Помилка встановлення OpenSSL"; exit 1; }
+  fi
 
-    # Розшифрування файлу
-    print_message "Розшифрування файлу..."
-    if [ "$OS_TYPE" = "macos" ]; then
-      ENC_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.enc"
-      DMG_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.dmg"
-    elif [ "$OS_TYPE" = "linux" ]; then
-      ENC_FILE="LogParser-${VERSION}-linux.enc"
-      DEB_FILE="LogParser-${VERSION}-linux.deb"
-    fi
+  # Розшифрування файлу
+  print_message "Розшифрування файлу..."
+  ENC_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.enc"
+  DMG_FILE="LogParser-${VERSION}-macos-${ARCH_TYPE}.dmg"
 
-    if [ "$OS_TYPE" = "macos" ]; then
-      if ! openssl enc -aes-256-cbc -d -salt -in "$ENC_FILE" -out "$DMG_FILE" -k "$ENCRYPTION_KEY"; then
-        print_error "Неправильний ключ або пошкоджений файл"
-        exit 1
-      fi
-    elif [ "$OS_TYPE" = "linux" ]; then
-      if ! openssl enc -aes-256-cbc -d -salt -in "$ENC_FILE" -out "$DEB_FILE" -k "$ENCRYPTION_KEY"; then
-        print_error "Неправильний ключ або пошкоджений файл"
-        exit 1
-      fi
-    fi
+  if ! openssl enc -aes-256-cbc -d -salt -in "$ENC_FILE" -out "$DMG_FILE" -k "$ENCRYPTION_KEY"; then
+    print_error "Неправильний ключ або пошкоджений файл"
+    exit 1
+  fi
 
     # Пошук DMG файлу
     DMG_FILE=$(ls *.dmg 2>/dev/null)
@@ -343,48 +284,7 @@ main() {
     else
       print_error "Встановлення не вдалося. LogParser.app не знайдено в /Applications"
     fi
-  elif [ "$OS_TYPE" = "linux" ]; then
-    # Перевірка наявності DEB файлу
-    DEB_FILE=$(ls *.deb 2>/dev/null)
-    if [ -z "$DEB_FILE" ]; then
-      print_error "DEB файл не знайдено після розшифрування"
-      print_message "Спробуйте розшифрувати файл вручну за допомогою команди:"
-      print_message "openssl enc -aes-256-cbc -d -salt -in LogParser-${VERSION}-linux.enc -out LogParser-${VERSION}-linux.deb -k ENCRYPTION_KEY"
-      exit 1
-    fi
 
-    # Встановлення пакету
-    print_message "Встановлення DEB пакету..."
-    if ! sudo apt install -y "./$DEB_FILE"; then
-      print_error "Помилка встановлення DEB пакету"
-      exit 1
-    fi
-
-    print_success "Встановлено через apt"
-    print_message "Запуск додатку..."
-    logparser || print_warning "Помилка запуску додатку"
-  elif [ "$OS_TYPE" = "windows" ]; then
-    # Розпакування архіву
-    print_message "Розпакування архіву..."
-    ZIP_FILE="LogParser-$VERSION-windows.zip"
-    if ! 7z x -p"$ENCRYPTION_KEY" "$ZIP_FILE"; then
-      print_error "Неправильний ключ або пошкоджений архів"
-      exit 1
-    fi
-
-    # Пошук EXE файлу
-    EXE_FILE=$(ls *.exe 2>/dev/null)
-    if [ -z "$EXE_FILE" ]; then
-      print_error "EXE файл не знайдено в архіві"
-      exit 1
-    fi
-
-    # Копіювання на робочий стіл
-    print_message "Копіювання на робочий стіл..."
-    cp "$EXE_FILE" "$HOME/Desktop/" || { print_error "Помилка копіювання на робочий стіл"; exit 1; }
-
-    print_success "Скопійовано на робочий стіл: $HOME/Desktop/$EXE_FILE"
-  fi
 
   cd / && rm -rf "$TEMP_DIR"
   print_success "Встановлення завершено!"

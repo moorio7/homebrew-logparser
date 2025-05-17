@@ -16,10 +16,8 @@ class Logparser < Formula
   depends_on "curl"
   depends_on "grep"
 
-  # Визначення платформи
-  on_linux do
-    depends_on "apt"
-  end
+  # Формула призначена тільки для macOS
+  depends_on :macos
 
   def install
     # Встановлення зі скрипту
@@ -34,59 +32,28 @@ class Logparser < Formula
   end
 
   def caveats
-    if OS.mac?
-      <<~EOS
-        Для встановлення LogParser виконайте:
-          install-logparser
+    <<~EOS
+      Для встановлення LogParser виконайте:
+        install-logparser
 
-        Якщо виникає помилка з дозволами, виконайте:
-          chmod +x $(which install-logparser)
+      Якщо виникає помилка з дозволами, виконайте:
+        chmod +x $(which install-logparser)
 
-        Вам буде запропоновано ввести ключ для розшифрування файлу.
-        Зверніться до розробника програми для отримання ключа.
+      Вам буде запропоновано ввести ключ для розшифрування файлу.
+      Зверніться до розробника програми для отримання ключа.
 
-        Підтримувані платформи:
-        - macOS (Intel та Apple Silicon)
-        - Linux (Debian/Ubuntu)
-        - Windows
-      EOS
-    else
-      <<~EOS
-        Для Linux рекомендується використовувати окремий скрипт встановлення:
-          curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
-          chmod +x install-logparser-linux.sh
-          ./install-logparser-linux.sh
-
-        Або ви можете використати стандартний скрипт:
-          install-logparser
-
-        Якщо виникає помилка з дозволами, виконайте:
-          chmod +x $(which install-logparser)
-
-        Вам буде запропоновано ввести ключ для розшифрування файлу.
-        Зверніться до розробника програми для отримання ключа.
-
-        Підтримувані платформи:
-        - macOS (Intel та Apple Silicon)
-        - Linux (Debian/Ubuntu)
-        - Windows
-      EOS
-    end
+      Примітка: Ця формула призначена тільки для macOS.
+      Для Linux використовуйте окремий скрипт встановлення:
+      https://github.com/moorio7/homebrew-logparser#для-linux-рекомендовано
+    EOS
   end
 
   test do
     # Перевіряємо, чи скрипт встановлення існує
     assert_predicate bin/"install-logparser", :exist?
 
-    # Для macOS перевіряємо, чи можемо знайти змонтовані томи
-    if OS.mac?
-      system "ls", "-la", "/Volumes/"
-    end
-
-    # Для Linux перевіряємо наявність apt
-    if OS.linux?
-      system "which", "apt"
-    end
+    # Перевіряємо, чи можемо знайти змонтовані томи
+    system "ls", "-la", "/Volumes/"
   end
 end
 
