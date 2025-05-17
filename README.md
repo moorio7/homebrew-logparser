@@ -10,35 +10,28 @@
 
 # Homebrew Tap for LogParser
 
-Цей репозиторій містить Homebrew формулу для встановлення [LogParser](https://github.com/moorio7/LogParser) - програми для аналізу та перегляду лог-файлів з підтримкою різних форматів та зручним інтерфейсом.
+Homebrew формула для встановлення [LogParser](https://github.com/moorio7/LogParser) - програми для аналізу лог-файлів з підтримкою різних форматів.
 
-> **Примітка**: Homebrew призначений тільки для macOS. Для Linux використовуйте спеціальний скрипт встановлення (див. Варіант 2). Для Windows використовуйте захищений ZIP-архів (див. Варіант 2).
+<details>
+<summary><b>Підтримувані платформи</b></summary>
 
-## Встановлення
+- **macOS**: Встановлення через Homebrew (Intel та Apple Silicon)
+- **Linux**: Встановлення через скрипт або DEB-пакет
+- **Windows**: Встановлення через захищений ZIP-архів
+</details>
 
-### Варіант 1: Встановлення через Homebrew (тільки для macOS)
+## Швидке встановлення
 
-1. Встановіть Homebrew, якщо він ще не встановлений:
-   ```bash
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
+### Для macOS
 
-2. Додайте tap для LogParser:
-   ```bash
-   brew tap moorio7/logparser
-   ```
+```bash
+# Встановлення через Homebrew
+brew tap moorio7/logparser
+brew install logparser
+install-logparser  # Введіть ключ, коли буде запропоновано
+```
 
-3. Встановіть LogParser:
-   ```bash
-   brew install logparser
-   ```
-
-4. Запустіть скрипт встановлення:
-   ```bash
-   install-logparser
-   ```
-
-5. **ВАЖЛИВО**: Скрипт автоматично встановить останню доступну версію. Для розпакування архіву вам знадобиться пароль. Зверніться до розробника для отримання пароля.
+> **Примітка**: Для розпакування архіву вам знадобиться ключ. Зверніться до розробника для отримання ключа.
 
 #### Оновлення та обслуговування
 
@@ -116,98 +109,75 @@ brew uninstall logparser
 brew untap moorio7/logparser
 ```
 
-### Варіант 2: Встановлення через захищені архіви
+### Для Linux
 
-#### Для Linux (рекомендовано):
-
-1. Завантажте скрипт встановлення:
-   ```bash
-   curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
-   ```
-
-2. Зробіть скрипт виконуваним:
-   ```bash
-   chmod +x install-logparser-linux.sh
-   ```
-
-3. Запустіть скрипт встановлення:
-   ```bash
-   ./install-logparser-linux.sh
-   ```
-
-4. При запиті введіть ключ для розшифрування (зверніться до розробника для отримання ключа).
+```bash
+# Швидке встановлення
+curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
+chmod +x install-logparser-linux.sh
+./install-logparser-linux.sh  # Введіть ключ, коли буде запропоновано
+```
 
 <details>
-<summary><b>Альтернативний метод: Ручне встановлення</b></summary>
+<summary><b>Ручне встановлення</b></summary>
 
-1. Завантажте захищений файл з останнього релізу:
-   ```bash
-   curl -L -o LogParser-0.4.25-linux.enc https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParser-0.4.25-linux.enc
-   ```
-   (Замініть 0.4.25 на актуальну версію, якщо потрібно)
+```bash
+# Завантаження та розшифрування
+curl -L -o LogParser-0.4.25-linux.enc https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParser-0.4.25-linux.enc
+openssl enc -aes-256-cbc -d -salt -in LogParser-0.4.25-linux.enc -out LogParser-0.4.25-linux.deb -k ENCRYPTION_KEY
 
-2. Розшифруйте файл за допомогою OpenSSL:
-   ```bash
-   openssl enc -aes-256-cbc -d -salt -in LogParser-0.4.25-linux.enc -out LogParser-0.4.25-linux.deb -k ENCRYPTION_KEY
-   ```
-   (Замініть ENCRYPTION_KEY на ключ, отриманий від розробника)
-
-3. Встановіть DEB-пакет:
-   ```bash
-   sudo apt install -y ./LogParser-0.4.25-linux.deb
-   ```
-
-4. Запустіть програму:
-   ```bash
-   logparser
-   ```
+# Встановлення та запуск
+sudo apt install -y ./LogParser-0.4.25-linux.deb
+logparser
+```
+> Замініть 0.4.25 на актуальну версію та ENCRYPTION_KEY на отриманий ключ
 </details>
 
-#### Для Windows:
+### Для Windows
 
-1. Завантажте захищений ZIP-архів з останнього релізу:
-   ```
-   https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParser-0.4.25-windows.zip
-   ```
-   (Замініть 0.4.25 на актуальну версію, якщо потрібно)
+```bash
+# 1. Завантажте ZIP-архів з останнього релізу:
+https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParser-0.4.25-windows.zip
 
-2. Розпакуйте архів за допомогою 7-Zip або іншого архіватора, який підтримує захищені паролем архіви.
+# 2. Розпакуйте архів за допомогою 7-Zip (введіть ключ, коли буде запропоновано)
+# 3. Запустіть розпакований EXE-файл
+```
 
-3. При запиті пароля введіть ENCRYPTION_KEY (зверніться до розробника для отримання ключа).
+<details>
+<summary><b>Системні вимоги</b></summary>
 
-4. Після розпакування ви отримаєте виконуваний EXE-файл, який можна скопіювати на робочий стіл або запустити безпосередньо.
-
-#### Вимоги для Windows
-
-- Для розпакування архіву потрібен 7-Zip або інший архіватор, який підтримує захищені паролем ZIP-архіви.
+**Windows**:
 - Windows 7/8/10/11 (32 або 64-біт)
+- 7-Zip або інший архіватор з підтримкою захищених паролем ZIP-архівів
 
-#### Вимоги для Linux
-
-- Debian/Ubuntu або інший дистрибутив, що підтримує DEB-пакети
+**Linux**:
+- Debian/Ubuntu або інший дистрибутив з підтримкою DEB-пакетів
 - OpenSSL для розшифрування файлів
 
-## Підтримувані платформи
+**macOS**:
+- macOS 10.14 або новіше (Intel або Apple Silicon)
+- Homebrew
+</details>
 
-- macOS (Intel та Apple Silicon)
-- Linux (Debian/Ubuntu)
-- Windows
-
-## Особливості
+<details>
+<summary><b>Особливості LogParser</b></summary>
 
 - Аналіз та перегляд лог-файлів різних форматів
-- Зручний інтерфейс користувача
-- Фільтрація та пошук у логах
-- Підсвічування синтаксису
-- Покращена робота з DPI
+- Зручний інтерфейс користувача з підтримкою тем
+- Фільтрація та пошук у логах з регулярними виразами
+- Підсвічування синтаксису та кольорове кодування
+- Покращена робота з DPI на різних екранах
+- Експорт результатів у різні формати
+</details>
 
-## Безпека
+<details>
+<summary><b>Безпека та ліцензування</b></summary>
 
-Програма розповсюджується у вигляді захищених файлів для захисту інтелектуальної власності.
-Для отримання ключа для розшифрування файлів або розпакування архівів зверніться до розробника програми.
+### Безпека
+- Шифрування AES-256 для macOS та Linux
+- Захищені паролем ZIP-архіви для Windows
+- Перевірка цілісності файлів через SHA-256 хеші
 
-Для macOS та Linux використовується шифрування AES-256, а для Windows - захищені паролем ZIP-архіви. Для перевірки цілісності файлів використовуються SHA-256 хеші.
-
-## Ліцензія
-
+### Ліцензія
 Всі права захищені. Несанкціоноване копіювання, розповсюдження або модифікація програми заборонені.
+</details>
