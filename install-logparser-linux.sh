@@ -26,26 +26,39 @@ print_error() {
 
 # Функція для отримання останньої версії з GitHub API
 get_latest_version() {
+  local version=""
+
   # Спроба отримати останню версію
-  LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
-  
+  version=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
+
   # Якщо не вдалося отримати останню версію, отримуємо список всіх версій
-  if [ -z "$LATEST" ]; then
-    print_warning "Не вдалося отримати останню версію через API. Спроба отримати список всіх версій..."
-    LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -Po '"tag_name": "v\K[^"]*' | sort -V -r | head -n 1)
+  if [ -z "$version" ]; then
+    print_warning "Не вдалося отримати останню версію через API. Спроба отримати список всіх версій..." >&2
+    version=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -Po '"tag_name": "v\K[^"]*' | sort -V -r | head -n 1)
   fi
-  
+
   # Якщо все ще не вдалося отримати версію, використовуємо версію за замовчуванням
-  if [ -z "$LATEST" ]; then
-    print_warning "Не вдалося отримати жодну версію через API. Використовуємо версію за замовчуванням."
-    LATEST="0.4.25"
+  if [ -z "$version" ]; then
+    print_warning "Не вдалося отримати жодну версію через API. Використовуємо версію за замовчуванням." >&2
+    version="0.4.25"
   fi
-  
-  echo "$LATEST"
+
+  # Перевірка, що версія містить тільки допустимі символи (цифри, крапки та, можливо, дефіси)
+  if ! echo "$version" | grep -q '^[0-9][0-9.]*$'; then
+    print_warning "Отримана версія має неправильний формат. Використовуємо версію за замовчуванням." >&2
+    version="0.4.25"
+  fi
+
+  echo "$version"
 }
 
 # Отримуємо останню версію
 VERSION=$(get_latest_version)
+# Перевірка, що версія не порожня і має правильний формат
+if [ -z "$VERSION" ] || ! echo "$VERSION" | grep -q '^[0-9][0-9.]*$'; then
+  print_warning "Версія має неправильний формат або порожня. Використовуємо версію за замовчуванням."
+  VERSION="0.4.25"
+fi
 print_message "Використовуємо останню версію: $VERSION"
 
 # Налаштування
@@ -63,14 +76,14 @@ SHA_FILE="LogParser-${VERSION}-linux.sha256"
 
 # Завантаження зашифрованого файлу
 print_message "Завантаження зашифрованого файлу для Linux..."
-curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE" || { 
+curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE" || {
   print_error "Помилка завантаження зашифрованого файлу"
   exit 1
 }
 
 # Завантаження хеш-файлу для перевірки цілісності
 print_message "Завантаження хеш-файлу..."
-curl -L -o "$SHA_FILE" "$REPO_URL/$SHA_FILE" || { 
+curl -L -o "$SHA_FILE" "$REPO_URL/$SHA_FILE" || {
   print_warning "Не вдалося завантажити хеш-файл"
 }
 
@@ -89,7 +102,7 @@ fi
 # Встановлення OpenSSL, якщо його немає
 if ! command -v openssl &> /dev/null; then
   print_message "Встановлення OpenSSL..."
-  sudo apt-get update && sudo apt-get install -y openssl || { 
+  sudo apt-get update && sudo apt-get install -y openssl || {
     print_error "Помилка встановлення OpenSSL"
     exit 1
   }

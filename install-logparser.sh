@@ -16,48 +16,44 @@ print_error() { echo -e "${RED}$1${NC}"; }
 
 # Функція для отримання останньої версії з GitHub API
 get_latest_version() {
-  # Спроба отримати останню версію
-  if [ "$(uname)" = "Darwin" ]; then
-    # macOS використовує BSD grep, який не підтримує -P
-    LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -o '"tag_name": "v[^"]*"' | sed 's/"tag_name": "v\(.*\)"/\1/')
-  else
-    # Linux використовує GNU grep, який підтримує -P
-    LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
-  fi
+  local version=""
+
+  # Спроба отримати останню версію (macOS використовує BSD grep, який не підтримує -P)
+  version=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -o '"tag_name": "v[^"]*"' | sed 's/"tag_name": "v\(.*\)"/\1/')
 
   # Якщо не вдалося отримати останню версію, отримуємо список всіх версій
-  if [ -z "$LATEST" ]; then
-    print_warning "Не вдалося отримати останню версію через API. Спроба отримати список всіх версій..."
-    if [ "$(uname)" = "Darwin" ]; then
-      # macOS використовує BSD grep, який не підтримує -P
-      LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -o '"tag_name": "v[^"]*"' | sed 's/"tag_name": "v\(.*\)"/\1/' | sort -V -r | head -n 1)
-    else
-      # Linux використовує GNU grep, який підтримує -P
-      LATEST=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -Po '"tag_name": "v\K[^"]*' | sort -V -r | head -n 1)
-    fi
+  if [ -z "$version" ]; then
+    print_warning "Не вдалося отримати останню версію через API. Спроба отримати список всіх версій..." >&2
+    # macOS використовує BSD grep, який не підтримує -P
+    version=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -o '"tag_name": "v[^"]*"' | sed 's/"tag_name": "v\(.*\)"/\1/' | sort -V -r | head -n 1)
   fi
 
   # Якщо все ще не вдалося отримати версію, використовуємо версію за замовчуванням
-  if [ -z "$LATEST" ]; then
-    print_warning "Не вдалося отримати жодну версію через API. Використовуємо версію за замовчуванням."
-    LATEST="0.4.25"
+  if [ -z "$version" ]; then
+    print_warning "Не вдалося отримати жодну версію через API. Використовуємо версію за замовчуванням." >&2
+    version="0.4.25"
   fi
 
-  echo "$LATEST"
+  # Перевірка, що версія містить тільки допустимі символи (цифри, крапки та, можливо, дефіси)
+  if ! echo "$version" | grep -q '^[0-9][0-9.]*$'; then
+    print_warning "Отримана версія має неправильний формат. Використовуємо версію за замовчуванням." >&2
+    version="0.4.25"
+  fi
+
+  echo "$version"
 }
 
 # Отримуємо останню версію
 VERSION=$(get_latest_version)
+# Перевірка, що версія не порожня і має правильний формат
+if [ -z "$VERSION" ] || ! echo "$VERSION" | grep -q '^[0-9][0-9.]*$'; then
+  print_warning "Версія має неправильний формат або порожня. Використовуємо версію за замовчуванням."
+  VERSION="0.4.25"
+fi
 print_message "Використовуємо останню версію: $VERSION"
 
-# Налаштування
-if [ "$(uname)" = "Darwin" ]; then
-  # macOS використовує /private/tmp
-  TEMP_DIR="/private/tmp/logparser_install"
-else
-  # Linux використовує /tmp
-  TEMP_DIR="/tmp/logparser_install"
-fi
+# Налаштування тимчасового каталогу для macOS
+TEMP_DIR="/private/tmp/logparser_install"
 
 # URL репозиторію для завантаження
 REPO_URL="https://github.com/moorio7/homebrew-logparser/releases/download/v${VERSION}"
