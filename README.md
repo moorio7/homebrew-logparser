@@ -12,11 +12,11 @@
 
 Цей репозиторій містить Homebrew формулу для встановлення [LogParser](https://github.com/moorio7/LogParser) - програми для аналізу та перегляду лог-файлів з підтримкою різних форматів та зручним інтерфейсом.
 
-> **Примітка**: Homebrew підтримує macOS та Linux. Для Windows використовуйте захищений ZIP-архів (див. Варіант 2).
+> **Примітка**: Homebrew рекомендується для macOS. Для Linux використовуйте спеціальний скрипт встановлення або захищений архів (див. Варіант 2). Для Windows використовуйте захищений ZIP-архів (див. Варіант 2).
 
 ## Встановлення
 
-### Варіант 1: Встановлення через Homebrew (рекомендовано для macOS та Linux)
+### Варіант 1: Встановлення через Homebrew (рекомендовано для macOS)
 
 1. Встановіть Homebrew, якщо він ще не встановлений:
    ```bash
@@ -177,45 +177,66 @@ brew uninstall logparser
 brew untap moorio7/logparser
 ```
 
-### Варіант 2: Встановлення через захищені архіви (Windows та Linux)
+### Варіант 2: Встановлення через захищені архіви
 
-#### Для Windows:
+#### Для Linux (рекомендовано):
 
-1. Завантажте захищений ZIP-архів з останнього релізу:
+##### Метод A: Використання скрипту встановлення
+
+1. Завантажте скрипт встановлення:
+   ```bash
+   curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
    ```
-   https://github.com/moorio7/homebrew-logparser/releases/download/vX.Y.Z/LogParser-X.Y.Z-windows.zip
+
+2. Зробіть скрипт виконуваним:
+   ```bash
+   chmod +x install-logparser-linux.sh
    ```
-   (Замініть X.Y.Z на актуальну версію, наприклад 0.4.25)
 
-2. Розпакуйте архів за допомогою 7-Zip або іншого архіватора, який підтримує захищені паролем архіви.
+3. Запустіть скрипт встановлення:
+   ```bash
+   ./install-logparser-linux.sh
+   ```
 
-3. При запиті пароля введіть ENCRYPTION_KEY (зверніться до розробника для отримання ключа).
+4. При запиті введіть ключ для розшифрування (зверніться до розробника для отримання ключа).
 
-4. Після розпакування ви отримаєте виконуваний EXE-файл, який можна скопіювати на робочий стіл або запустити безпосередньо.
-
-#### Для Linux:
+##### Метод B: Ручне встановлення
 
 1. Завантажте захищений файл з останнього релізу:
+   ```bash
+   curl -L -o LogParser-0.4.25-linux.enc https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParser-0.4.25-linux.enc
    ```
-   https://github.com/moorio7/homebrew-logparser/releases/download/vX.Y.Z/LogParser-X.Y.Z-linux.enc
-   ```
-   (Замініть X.Y.Z на актуальну версію, наприклад 0.4.25)
+   (Замініть 0.4.25 на актуальну версію, якщо потрібно)
 
 2. Розшифруйте файл за допомогою OpenSSL:
    ```bash
-   openssl enc -aes-256-cbc -d -salt -in LogParser-X.Y.Z-linux.enc -out LogParser-X.Y.Z-linux.deb -k ENCRYPTION_KEY
+   openssl enc -aes-256-cbc -d -salt -in LogParser-0.4.25-linux.enc -out LogParser-0.4.25-linux.deb -k ENCRYPTION_KEY
    ```
    (Замініть ENCRYPTION_KEY на ключ, отриманий від розробника)
 
 3. Встановіть DEB-пакет:
    ```bash
-   sudo apt install ./LogParser-X.Y.Z-linux.deb
+   sudo apt install -y ./LogParser-0.4.25-linux.deb
    ```
 
 4. Запустіть програму:
    ```bash
    logparser
    ```
+
+#### Для Windows:
+
+1. Завантажте захищений ZIP-архів з останнього релізу:
+   ```
+   https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParser-0.4.25-windows.zip
+   ```
+   (Замініть 0.4.25 на актуальну версію, якщо потрібно)
+
+2. Розпакуйте архів за допомогою 7-Zip або іншого архіватора, який підтримує захищені паролем архіви.
+
+3. При запиті пароля введіть ENCRYPTION_KEY (зверніться до розробника для отримання ключа).
+
+4. Після розпакування ви отримаєте виконуваний EXE-файл, який можна скопіювати на робочий стіл або запустити безпосередньо.
 
 #### Вимоги для Windows
 
