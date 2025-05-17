@@ -51,7 +51,13 @@ VERSION=$(get_latest_version)
 print_message "Використовуємо останню версію: $VERSION"
 
 # Налаштування
-TEMP_DIR="/private/tmp/logparser_install"
+if [ "$(uname)" = "Darwin" ]; then
+  # macOS використовує /private/tmp
+  TEMP_DIR="/private/tmp/logparser_install"
+else
+  # Linux використовує /tmp
+  TEMP_DIR="/tmp/logparser_install"
+fi
 
 # URL репозиторію для завантаження
 REPO_URL="https://github.com/moorio7/homebrew-logparser/releases/download/v${VERSION}"
@@ -321,6 +327,8 @@ main() {
     DEB_FILE=$(ls *.deb 2>/dev/null)
     if [ -z "$DEB_FILE" ]; then
       print_error "DEB файл не знайдено після розшифрування"
+      print_message "Спробуйте розшифрувати файл вручну за допомогою команди:"
+      print_message "openssl enc -aes-256-cbc -d -salt -in LogParser-${VERSION}-linux.enc -out LogParser-${VERSION}-linux.deb -k ENCRYPTION_KEY"
       exit 1
     fi
 
