@@ -130,7 +130,7 @@ sudo apt update
 sudo apt install -y curl openssl
 
 # Отримання останньої версії
-VERSION=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
+VERSION=$(curl -s https://api.github.com/repos/moorio7/homebrew-logparser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
 echo "Використовуємо версію: $VERSION"
 
 # Завантаження та розшифрування
@@ -148,7 +148,7 @@ logparser
 
 ```bash
 # 1. Завантажте ZIP-архів з останнього релізу:
-VERSION=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
+VERSION=$(curl -s https://api.github.com/repos/moorio7/homebrew-logparser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
 echo "Використовуємо версію: $VERSION"
 curl -L -o "LogParser-$VERSION-windows.zip" "https://github.com/moorio7/homebrew-logparser/releases/latest/download/LogParser-$VERSION-windows.zip"
 
