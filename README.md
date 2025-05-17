@@ -157,6 +157,24 @@ curl -L -o "LogParser-$VERSION-windows.zip" "https://github.com/moorio7/homebrew
 ```
 
 <details>
+<summary><b>Видалення LogParser</b></summary>
+
+### Для macOS (встановлено через Homebrew):
+```bash
+brew uninstall logparser
+```
+
+### Для Linux:
+```bash
+sudo apt-get remove logparser
+sudo apt-get purge logparser  # Видаляє також конфігураційні файли
+```
+
+### Для Windows:
+Видаліть програму через "Програми та компоненти" в Панелі керування або просто видаліть виконуваний файл.
+</details>
+
+<details>
 <summary><b>Системні вимоги</b></summary>
 
 **Windows**:
