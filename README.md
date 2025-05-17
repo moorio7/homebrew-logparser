@@ -40,21 +40,15 @@
 
 5. **ВАЖЛИВО**: Скрипт автоматично встановить останню доступну версію. Для розпакування архіву вам знадобиться пароль. Зверніться до розробника для отримання пароля.
 
-#### Оновлення LogParser
-
-Для оновлення LogParser до нової версії:
+#### Оновлення та обслуговування
 
 ```bash
+# Оновлення LogParser до нової версії
 brew update
 brew upgrade logparser
 install-logparser
-```
 
-#### Перевстановлення LogParser
-
-Якщо виникли проблеми з встановленням, ви можете перевстановити LogParser:
-
-```bash
+# Перевстановлення LogParser (якщо виникли проблеми)
 brew reinstall logparser
 install-logparser
 ```
@@ -62,105 +56,50 @@ install-logparser
 <details>
 <summary><b>Вирішення проблем з встановленням</b></summary>
 
-### Проблеми з кешем Homebrew
-
-Очистити кеш Homebrew:
+### Швидке вирішення проблем
 
 ```bash
-brew cleanup
-```
-
-```bash
+# Очистити кеш і оновити Homebrew
 brew cleanup --prune=all
-```
-
-Оновити Homebrew та формули:
-
-```bash
 brew update
+
+# Перевстановити LogParser
+brew reinstall logparser
+install-logparser
 ```
 
-```bash
-brew update-reset
-```
-
-### Проблеми з хешами
-
-Якщо виникає помилка "SHA256 mismatch":
-
-Очистити кеш завантажень:
+### Проблеми з хешами (SHA256 mismatch)
 
 ```bash
+# Очистити кеш завантажень і перевстановити
 rm -rf "$(brew --cache)/downloads/moorio7-logparser-*"
-```
-
-Оновити формулу:
-
-```bash
 brew update
-```
-
-Перевстановити:
-
-```bash
 brew reinstall logparser
 ```
 
 ### Проблеми з правами доступу
 
-Якщо виникають проблеми з правами доступу:
-
-Виправити права доступу для Homebrew:
-
 ```bash
+# Виправити права доступу і перевстановити
 sudo chown -R $(whoami) $(brew --prefix)/*
-```
-
-Перевстановити формулу:
-
-```bash
 brew reinstall logparser
 ```
 
 ### Повне скидання Homebrew
 
-Для повного скидання та перевстановлення:
-
-1. Видалити всі кешовані файли LogParser:
 ```bash
+# Видалити кеш і формулу
 rm -rf "$(brew --cache)/downloads/moorio7-logparser-*"
-```
-
-2. Очистити кеш Homebrew:
-```bash
 brew cleanup --prune=all
-```
-
-3. Оновити Homebrew:
-```bash
 brew update
-```
-
-4. Видалити формулу LogParser:
-```bash
 brew uninstall logparser
-```
-
-5. Видалити теп репозиторію:
-```bash
 brew untap moorio7/logparser
-```
 
-6. Додати теп знову:
-```bash
+# Встановити заново
 brew tap moorio7/logparser
+brew install logparser
+install-logparser
 ```
-
-7. Встановити LogParser заново:
-   ```bash
-   brew install logparser
-   install-logparser
-   ```
 </details>
 
 #### Видалення LogParser
@@ -181,8 +120,6 @@ brew untap moorio7/logparser
 
 #### Для Linux (рекомендовано):
 
-##### Метод A: Використання скрипту встановлення
-
 1. Завантажте скрипт встановлення:
    ```bash
    curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
@@ -200,7 +137,8 @@ brew untap moorio7/logparser
 
 4. При запиті введіть ключ для розшифрування (зверніться до розробника для отримання ключа).
 
-##### Метод B: Ручне встановлення
+<details>
+<summary><b>Альтернативний метод: Ручне встановлення</b></summary>
 
 1. Завантажте захищений файл з останнього релізу:
    ```bash
@@ -223,6 +161,7 @@ brew untap moorio7/logparser
    ```bash
    logparser
    ```
+</details>
 
 #### Для Windows:
 
