@@ -24,12 +24,17 @@ Homebrew формула для встановлення [LogParser](https://gith
 
 ### Для macOS
 
-```bash
-# Встановлення через Homebrew
-brew tap moorio7/logparser
-brew install logparser
-install-logparser  # Введіть ключ, коли буде запропоновано
-```
+1. Встановіть Homebrew, якщо він ще не встановлений:
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. Встановіть LogParser:
+   ```bash
+   brew tap moorio7/logparser
+   brew install logparser
+   install-logparser  # Введіть ключ, коли буде запропоновано
+   ```
 
 > **Примітка**: Для розпакування архіву вам знадобиться ключ. Зверніться до розробника для отримання ключа.
 
@@ -97,15 +102,9 @@ install-logparser
 
 #### Видалення LogParser
 
-Для видалення LogParser:
-
 ```bash
+# Видалення програми та репозиторію
 brew uninstall logparser
-```
-
-Для видалення tap:
-
-```bash
 brew untap moorio7/logparser
 ```
 
@@ -166,8 +165,6 @@ https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParse
 - Зручний інтерфейс користувача з підтримкою тем
 - Фільтрація та пошук у логах з регулярними виразами
 - Підсвічування синтаксису та кольорове кодування
-- Покращена робота з DPI на різних екранах
-- Експорт результатів у різні формати
 </details>
 
 <details>
