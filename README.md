@@ -112,7 +112,7 @@ brew untap moorio7/logparser
 
 ```bash
 # Швидке встановлення
-curl -L -o install-logparser-linux.sh https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser-linux.sh
+curl -L -o install-logparser-linux.sh https://github.com/moorio7/homebrew-logparser/releases/latest/download/install-logparser-linux.sh
 chmod +x install-logparser-linux.sh
 ./install-logparser-linux.sh  # Введіть ключ, коли буде запропоновано
 ```
@@ -121,22 +121,28 @@ chmod +x install-logparser-linux.sh
 <summary><b>Ручне встановлення</b></summary>
 
 ```bash
+# Отримання останньої версії
+VERSION=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
+echo "Використовуємо версію: $VERSION"
+
 # Завантаження та розшифрування
-curl -L -o LogParser-0.4.25-linux.enc https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParser-0.4.25-linux.enc
-openssl enc -aes-256-cbc -d -salt -in LogParser-0.4.25-linux.enc -out LogParser-0.4.25-linux.deb -k ENCRYPTION_KEY
+curl -L -o "LogParser-$VERSION-linux.enc" "https://github.com/moorio7/homebrew-logparser/releases/latest/download/LogParser-$VERSION-linux.enc"
+openssl enc -aes-256-cbc -d -salt -in "LogParser-$VERSION-linux.enc" -out "LogParser-$VERSION-linux.deb" -k ENCRYPTION_KEY
 
 # Встановлення та запуск
-sudo apt install -y ./LogParser-0.4.25-linux.deb
+sudo apt install -y "./LogParser-$VERSION-linux.deb"
 logparser
 ```
-> Замініть 0.4.25 на актуальну версію та ENCRYPTION_KEY на отриманий ключ
+> Замініть ENCRYPTION_KEY на отриманий ключ
 </details>
 
 ### Для Windows
 
 ```bash
 # 1. Завантажте ZIP-архів з останнього релізу:
-https://github.com/moorio7/homebrew-logparser/releases/download/v0.4.25/LogParser-0.4.25-windows.zip
+VERSION=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -Po '"tag_name": "v\K[^"]*')
+echo "Використовуємо версію: $VERSION"
+curl -L -o "LogParser-$VERSION-windows.zip" "https://github.com/moorio7/homebrew-logparser/releases/latest/download/LogParser-$VERSION-windows.zip"
 
 # 2. Розпакуйте архів за допомогою 7-Zip (введіть ключ, коли буде запропоновано)
 # 3. Запустіть розпакований EXE-файл
