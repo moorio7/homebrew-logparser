@@ -4,7 +4,7 @@ class Logparser < Formula
 
   # Використовуємо скрипт встановлення для зашифрованих файлів
   url "https://raw.githubusercontent.com/moorio7/homebrew-logparser/master/install-logparser.sh"
-  sha256 "d11f3a2009eb3600ded90e0b2d1f2d4837143e427e446f7fab0e9ae1f1c713bf"
+  sha256 "0a9d6fa46a5f80dfb51756fa071bdc9174b6844878c091526d0d09008a56c652"
 
   # Базова версія для сумісності з Homebrew
   # Примітка: Скрипт встановлення автоматично визначає останню версію
@@ -59,6 +59,7 @@ class Logparser < Formula
     system "ls", "-la", "/Volumes/"
   end
 end
+
 
 
 
