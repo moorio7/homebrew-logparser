@@ -50,7 +50,8 @@ get_last_published_version() {
     local enc_url="https://github.com/moorio7/homebrew-logparser/releases/download/v${v}/LogParser-${v}-linux.enc"
     local status_code=$(curl -s -o /dev/null -w "%{http_code}" "$enc_url")
 
-    if [ "$status_code" = "200" ]; then
+    # GitHub може повертати 302 (перенаправлення) для файлів, які існують
+    if [ "$status_code" = "200" ] || [ "$status_code" = "302" ]; then
       print_message "Знайдено останню успішно опубліковану версію: $v" >&2
       echo "$v"
       return
