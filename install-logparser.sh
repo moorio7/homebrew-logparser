@@ -14,30 +14,79 @@ print_success() { echo -e "${GREEN}$1${NC}"; }
 print_warning() { echo -e "${YELLOW}$1${NC}"; }
 print_error() { echo -e "${RED}$1${NC}"; }
 
+# Функція для отримання останньої успішно опублікованої версії
+get_last_published_version() {
+  local api_response=""
+  local version=""
+  local fallback_version="0.4.25"  # Жорстко закодована версія як останній запасний варіант
+  local arch_type=$([ "$(uname -m)" = "arm64" ] && echo "arm64" || echo "intel")
+
+  print_message "Пошук останньої успішно опублікованої версії..." >&2
+
+  # Отримуємо список всіх релізів
+  api_response=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/moorio7/homebrew-logparser/releases)
+
+  if [ -z "$api_response" ] || echo "$api_response" | grep -q "Not Found"; then
+    print_warning "Не вдалося отримати список релізів. Використовуємо жорстко закодовану версію." >&2
+    echo "$fallback_version"
+    return
+  fi
+
+  # Отримуємо список всіх версій (сумісно з BSD grep в macOS)
+  local all_versions=$(echo "$api_response" | grep -o '"tag_name": *"v[^"]*"' | sed 's/.*"v\([0-9][0-9.]*\)".*/\1/' | sort -V -r)
+
+  # Перевіряємо кожну версію на наявність файлів релізу
+  for v in $all_versions; do
+    # Перевіряємо наявність файлів для macOS з відповідною архітектурою
+    local enc_url="https://github.com/moorio7/homebrew-logparser/releases/download/v${v}/LogParser-${v}-macos-${arch_type}.enc"
+    local status_code=$(curl -s -o /dev/null -w "%{http_code}" "$enc_url")
+
+    if [ "$status_code" = "200" ]; then
+      print_message "Знайдено останню успішно опубліковану версію: $v" >&2
+      echo "$v"
+      return
+    fi
+  done
+
+  print_warning "Не знайдено жодної версії з файлами релізу. Використовуємо жорстко закодовану версію." >&2
+  echo "$fallback_version"
+}
+
 # Функція для отримання останньої версії з GitHub API
 get_latest_version() {
   local version=""
+  local api_response=""
+  local default_version=$(get_last_published_version)
 
-  # Спроба отримати останню версію (macOS використовує BSD grep, який не підтримує -P)
-  version=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases/latest | grep -o '"tag_name": "v[^"]*"' | sed 's/"tag_name": "v\(.*\)"/\1/')
+  # Спроба отримати версію з релізів публічного репозиторію homebrew-logparser
+  print_message "Отримання інформації про останній реліз з homebrew-logparser..." >&2
+  api_response=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/moorio7/homebrew-logparser/releases/latest)
 
-  # Якщо не вдалося отримати останню версію, отримуємо список всіх версій
-  if [ -z "$version" ]; then
-    print_warning "Не вдалося отримати останню версію через API. Спроба отримати список всіх версій..." >&2
-    # macOS використовує BSD grep, який не підтримує -P
-    version=$(curl -s https://api.github.com/repos/moorio7/LogParser/releases | grep -o '"tag_name": "v[^"]*"' | sed 's/"tag_name": "v\(.*\)"/\1/' | sort -V -r | head -n 1)
+  # Перевірка, чи отримали ми відповідь від API
+  if [ -z "$api_response" ] || echo "$api_response" | grep -q "Not Found"; then
+    print_warning "Не вдалося отримати інформацію про останній реліз" >&2
+    print_warning "Спроба отримати список всіх релізів..." >&2
+    api_response=$(curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/moorio7/homebrew-logparser/releases)
+
+    # Спроба отримати версію з усіх релізів (сумісно з BSD grep в macOS)
+    version=$(echo "$api_response" | grep -o '"tag_name": *"v[^"]*"' | sed 's/.*"v\([0-9][0-9.]*\)".*/\1/' | sort -V -r | head -n 1)
+  else
+    # Спроба отримати версію з останнього релізу (сумісно з BSD grep в macOS)
+    version=$(echo "$api_response" | grep -o '"tag_name": *"v[^"]*"' | sed 's/.*"v\([0-9][0-9.]*\)".*/\1/')
   fi
 
-  # Якщо все ще не вдалося отримати версію, використовуємо версію за замовчуванням
+  # Якщо не вдалося отримати версію з релізів, використовуємо останню опубліковану версію
   if [ -z "$version" ]; then
-    print_warning "Не вдалося отримати жодну версію через API. Використовуємо версію за замовчуванням." >&2
-    version="0.4.25"
+    print_warning "Не вдалося отримати версію з релізів. Використовуємо останню опубліковану версію." >&2
+    print_warning "Це може статися, якщо реліз ще не опубліковано в публічному репозиторії moorio7/homebrew-logparser." >&2
+    print_warning "Спроба завантаження буде виконана з використанням останньої опублікованої версії: $default_version" >&2
+    version="$default_version"
   fi
 
-  # Перевірка, що версія містить тільки допустимі символи (цифри, крапки та, можливо, дефіси)
+  # Перевірка, що версія містить тільки допустимі символи (цифри та крапки)
   if ! echo "$version" | grep -q '^[0-9][0-9.]*$'; then
-    print_warning "Отримана версія має неправильний формат. Використовуємо версію за замовчуванням." >&2
-    version="0.4.25"
+    print_warning "Отримана версія має неправильний формат: '$version'. Використовуємо останню опубліковану версію." >&2
+    version="$default_version"
   fi
 
   echo "$version"
@@ -47,8 +96,8 @@ get_latest_version() {
 VERSION=$(get_latest_version)
 # Перевірка, що версія не порожня і має правильний формат
 if [ -z "$VERSION" ] || ! echo "$VERSION" | grep -q '^[0-9][0-9.]*$'; then
-  print_warning "Версія має неправильний формат або порожня. Використовуємо версію за замовчуванням."
-  VERSION="0.4.25"
+  print_warning "Версія має неправильний формат або порожня. Використовуємо останню опубліковану версію."
+  VERSION=$(get_last_published_version)
 fi
 print_message "Використовуємо останню версію: $VERSION"
 
