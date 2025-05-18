@@ -121,40 +121,11 @@ chmod +x install-logparser-linux.sh
 ./install-logparser-linux.sh  # Введіть ключ, коли буде запропоновано
 ```
 
-<details>
-<summary><b>Ручне встановлення</b></summary>
-
-```bash
-# Встановіть необхідні залежності
-sudo apt update
-sudo apt install -y curl openssl
-
-# Отримання останньої версії (сумісно з macOS)
-VERSION=$(curl -s https://api.github.com/repos/moorio7/homebrew-logparser/releases/latest | grep '"tag_name"' | grep -o 'v[0-9][0-9.]*' | sed 's/^v//')
-echo "Використовуємо версію: $VERSION"
-
-# Завантаження та розшифрування
-curl -L -o "LogParser-$VERSION-linux.enc" "https://github.com/moorio7/homebrew-logparser/releases/latest/download/LogParser-$VERSION-linux.enc"
-openssl enc -aes-256-cbc -d -salt -in "LogParser-$VERSION-linux.enc" -out "LogParser-$VERSION-linux.deb" -k ENCRYPTION_KEY
-
-# Встановлення та запуск
-sudo apt install -y "./LogParser-$VERSION-linux.deb"
-logparser
-```
-> Замініть ENCRYPTION_KEY на отриманий ключ
-</details>
-
 ### Для Windows
 
-```bash
-# 1. Завантажте ZIP-архів з останнього релізу:
-VERSION=$(curl -s https://api.github.com/repos/moorio7/homebrew-logparser/releases/latest | grep '"tag_name"' | grep -o 'v[0-9][0-9.]*' | sed 's/^v//')
-echo "Використовуємо версію: $VERSION"
-curl -L -o "LogParser-$VERSION-windows.zip" "https://github.com/moorio7/homebrew-logparser/releases/latest/download/LogParser-$VERSION-windows.zip"
-
-# 2. Розпакуйте архів за допомогою 7-Zip (введіть ключ, коли буде запропоновано)
-# 3. Запустіть розпакований EXE-файл
-```
+1. Завантажте останню версію LogParser з [сторінки релізів](https://github.com/moorio7/homebrew-logparser/releases/latest)
+2. Розпакуйте ZIP-архів за допомогою 7-Zip чи іншого архіватора (введіть ключ, коли буде запропоновано)
+3. Запустіть розпакований EXE-файл
 
 <details>
 <summary><b>Видалення LogParser</b></summary>
@@ -171,7 +142,7 @@ sudo apt-get purge logparser  # Видаляє також конфігураці
 ```
 
 ### Для Windows:
-Просто видаліть розпакований EXE-файл та пов'язані з ним файли.
+Видаліть папку з розпакованими файлами LogParser
 </details>
 
 <details>
@@ -179,7 +150,7 @@ sudo apt-get purge logparser  # Видаляє також конфігураці
 
 **Windows**:
 - Windows 7/8/10/11 (32 або 64-біт)
-- 7-Zip або інший архіватор з підтримкою захищених паролем ZIP-архівів
+- Архіватор з підтримкою захищених паролем ZIP-архівів
 
 **Linux**:
 - Debian/Ubuntu або інший дистрибутив з підтримкою DEB-пакетів
