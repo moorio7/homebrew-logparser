@@ -190,6 +190,9 @@ cd "$TEMP_DIR"
 # URL репозиторію для завантаження
 REPO_URL="https://github.com/moorio7/homebrew-logparser/releases/download/v${VERSION}"
 
+# Опції для curl: редіректи, HTTP/1.1, ретраї, докачка
+CURL_OPTS="-L --http1.1 --retry 10 --retry-all-errors -C -"
+
 # Визначаємо пакетний менеджер
 PMGR=$(detect_pkgmgr)
 
@@ -234,7 +237,7 @@ fi
 
 # Завантаження зашифрованого файлу
 print_message "Завантаження зашифрованого файлу: $ENC_FILE"
-if ! curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE"; then
+if ! curl $CURL_OPTS -o "$ENC_FILE" "$REPO_URL/$ENC_FILE"; then
   if [ "$MODE" = "appimage" ]; then
     # Fallback: спробувати DEB, якщо AppImage відсутній
     print_warning "AppImage недоступний для цієї версії, пробуємо DEB..."
@@ -242,7 +245,7 @@ if ! curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE"; then
     ENC_FILE="LogParser-${VERSION}-linux.enc"
     OUT_FILE="LogParser-${VERSION}-linux.deb"
     SHA_FILE="LogParser-${VERSION}-linux.sha256"
-    curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE" || { print_error "Не вдалося завантажити жоден артефакт"; exit 1; }
+    curl $CURL_OPTS -o "$ENC_FILE" "$REPO_URL/$ENC_FILE" || { print_error "Не вдалося завантажити жоден артефакт"; exit 1; }
   else
     print_error "Помилка завантаження зашифрованого файлу"
     exit 1
@@ -251,7 +254,7 @@ fi
 
 # Завантаження хеш-файлу для перевірки цілісності (опційно)
 print_message "Завантаження хеш-файлу: $SHA_FILE"
-curl -L -o "$SHA_FILE" "$REPO_URL/$SHA_FILE" || print_warning "Не вдалося завантажити хеш-файл"
+curl $CURL_OPTS -o "$SHA_FILE" "$REPO_URL/$SHA_FILE" || print_warning "Не вдалося завантажити хеш-файл"
 
 if [ -f "$SHA_FILE" ]; then
   print_message "Хеш буде перевірено після розшифрування"
@@ -323,8 +326,8 @@ else
     APPS_DIR="$HOME/.local/share/applications"
     ICONS_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
     mkdir -p "$APPS_DIR" "$ICONS_DIR"
-    # Завантажуємо іконку
-    curl -sSL -o "$ICONS_DIR/logparser.png" "https://raw.githubusercontent.com/moorio7/LogParser/main/icon/icon.png" || true
+    # Завантажуємо іконку (невеликий файл, але залишаємо ті ж опції для надійності)
+    curl -sS $CURL_OPTS -o "$ICONS_DIR/logparser.png" "https://raw.githubusercontent.com/moorio7/LogParser/main/icon/icon.png" || true
     DESKTOP_FILE="$APPS_DIR/logparser.desktop"
     cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
