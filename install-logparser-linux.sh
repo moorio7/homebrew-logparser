@@ -222,6 +222,16 @@ if [ "$MODE" = "auto" ]; then
   fi
 fi
 
+# Зберігаємо оригінальний вибір користувача для fallback
+USER_CHOICE="$MODE"
+
+# Логуємо вибір користувача
+if [ "$USER_CHOICE" = "appimage" ]; then
+  print_message "Користувач обрав AppImage - завантаження AppImage файлу"
+elif [ "$USER_CHOICE" = "deb" ]; then
+  print_message "Користувач обрав DEB - завантаження DEB файлу"
+fi
+
 if [ "$MODE" = "deb" ]; then
   ENC_FILE="LogParser-${VERSION}-linux.enc"
   OUT_FILE="LogParser-${VERSION}-linux.deb"
@@ -235,8 +245,8 @@ fi
 # Завантаження зашифрованого файлу
 print_message "Завантаження зашифрованого файлу: $ENC_FILE"
 if ! curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE"; then
-  if [ "$MODE" = "appimage" ]; then
-    # Fallback: спробувати DEB, якщо AppImage відсутній
+  if [ "$MODE" = "appimage" ] && [ "$USER_CHOICE" = "appimage" ]; then
+    # Fallback: спробувати DEB, якщо AppImage відсутній, але тільки якщо це був оригінальний вибір користувача
     print_warning "AppImage недоступний для цієї версії, пробуємо DEB..."
     MODE="deb"
     ENC_FILE="LogParser-${VERSION}-linux.enc"
@@ -304,7 +314,12 @@ if [ "$MODE" = "deb" ]; then
   print_message "Запуск додатку..."
   logparser || print_warning "Помилка запуску додатку"
 else
-  print_message "Встановлення AppImage..."
+  # Додаткова перевірка для AppImage
+  if [ "$USER_CHOICE" = "appimage" ]; then
+    print_message "Встановлення AppImage (вибір користувача)..."
+  else
+    print_message "Встановлення AppImage (fallback з DEB)..."
+  fi
   install_fuse2_if_needed
   APP_DIR="$HOME/Applications"
   BIN_DIR="$HOME/.local/bin"
