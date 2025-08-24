@@ -336,10 +336,42 @@ else
   # Додати ярлик у меню?
   if prompt_yes_no "Додати ярлик у меню програм?"; then
     APPS_DIR="$HOME/.local/share/applications"
-    ICONS_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
+    ICONS_DIR="$HOME/.local/share/icons/hicolor"
     mkdir -p "$APPS_DIR" "$ICONS_DIR"
-    # Завантажуємо іконку
-    curl -sSL -o "$ICONS_DIR/logparser.png" "https://raw.githubusercontent.com/moorio7/LogParser/main/icon/icon.png" || true
+    
+    # Витягування іконок з AppImage
+    echo "🎨 Витягування іконок з AppImage..."
+    
+    # Створення тимчасової папки для розпакування AppImage
+    TEMP_APPIMAGE="/tmp/logparser_appimage_temp"
+    mkdir -p "$TEMP_APPIMAGE"
+    
+    # Спроба розпакувати AppImage для витягування іконок
+    if command -v appimagetool >/dev/null 2>&1; then
+      echo "📦 Розпакування AppImage для витягування іконок..."
+      appimagetool --appimage-extract "$APP_DIR/LogParser.AppImage" "$TEMP_APPIMAGE"
+      
+      # Копіювання іконок з розпакованого AppImage
+      if [ -d "$TEMP_APPIMAGE/usr/share/icons" ]; then
+        cp -r "$TEMP_APPIMAGE/usr/share/icons"/* "$ICONS_DIR/"
+        echo "✅ Іконки витягнуто з AppImage"
+      else
+        echo "⚠️  Іконки не знайдено в AppImage, створюємо базову структуру"
+        mkdir -p "$ICONS_DIR/256x256/apps"
+        # Fallback: використовуємо AppImage як іконку
+        cp "$APP_DIR/LogParser.AppImage" "$ICONS_DIR/256x256/apps/logparser.png" 2>/dev/null || true
+      fi
+      
+      # Очищення тимчасових файлів
+      rm -rf "$TEMP_APPIMAGE"
+    else
+      echo "⚠️  appimagetool не знайдено, створюємо базову структуру іконок"
+      mkdir -p "$ICONS_DIR/256x256/apps"
+      # Fallback: використовуємо AppImage як іконку
+      cp "$APP_DIR/LogParser.AppImage" "$ICONS_DIR/256x256/apps/logparser.png" 2>/dev/null || true
+    fi
+    
+    # Створення .desktop файлу
     DESKTOP_FILE="$APPS_DIR/logparser.desktop"
     cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
@@ -353,6 +385,8 @@ Categories=Utility;
 StartupNotify=true
 EOF
     chmod +x "$DESKTOP_FILE" || true
+    
+    # Оновлення кешів
     command -v update-desktop-database >/dev/null && update-desktop-database || true
     command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -f ~/.local/share/icons/hicolor || true
     print_success "Ярлик у меню додано"
@@ -362,20 +396,24 @@ EOF
   if prompt_yes_no "Додати ярлик на робочий стіл?"; then
     DESKTOP_DIR="$HOME/Desktop"
     mkdir -p "$DESKTOP_DIR"
-    cp "$HOME/.local/share/applications/logparser.desktop" "$DESKTOP_DIR/LogParser.desktop" 2>/dev/null || {
-      # Якщо ще не створено у меню, створимо напряму
+    
+    # Копіювання .desktop файлу з меню, якщо він створений
+    if [ -f "$APPS_DIR/logparser.desktop" ]; then
+      cp "$APPS_DIR/logparser.desktop" "$DESKTOP_DIR/LogParser.desktop" 2>/dev/null || true
+    else
+      # Створення .desktop файлу напряму для робочого столу
       cat > "$DESKTOP_DIR/LogParser.desktop" <<EOF
 [Desktop Entry]
 Name=LogParser
 Comment=Аналізатор лог-файлів
 Exec=$APP_DIR/LogParser.AppImage
-Icon=$HOME/.local/share/icons/hicolor/256x256/apps/logparser.png
+Icon=logparser
 Terminal=false
 Type=Application
 Categories=Utility;
 StartupNotify=true
 EOF
-    }
+    fi
     chmod +x "$DESKTOP_DIR/LogParser.desktop" || true
     print_success "Ярлик на робочому столі додано"
   fi
