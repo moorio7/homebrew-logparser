@@ -336,49 +336,17 @@ else
   # Додати ярлик у меню?
   if prompt_yes_no "Додати ярлик у меню програм?"; then
     APPS_DIR="$HOME/.local/share/applications"
-    ICONS_DIR="$HOME/.local/share/icons/hicolor"
-    mkdir -p "$APPS_DIR" "$ICONS_DIR"
+    mkdir -p "$APPS_DIR"
     
-    # Витягування іконок з AppImage
-    echo "🎨 Витягування іконок з AppImage..."
-    
-    # Створення тимчасової папки для розпакування AppImage
-    TEMP_APPIMAGE="/tmp/logparser_appimage_temp"
-    mkdir -p "$TEMP_APPIMAGE"
-    
-    # Спроба розпакувати AppImage для витягування іконок
-    if command -v appimagetool >/dev/null 2>&1; then
-      echo "📦 Розпакування AppImage для витягування іконок..."
-      appimagetool --appimage-extract "$APP_DIR/LogParser.AppImage" "$TEMP_APPIMAGE"
-      
-      # Копіювання іконок з розпакованого AppImage
-      if [ -d "$TEMP_APPIMAGE/usr/share/icons" ]; then
-        cp -r "$TEMP_APPIMAGE/usr/share/icons"/* "$ICONS_DIR/"
-        echo "✅ Іконки витягнуто з AppImage"
-      else
-        echo "⚠️  Іконки не знайдено в AppImage, створюємо базову структуру"
-        mkdir -p "$ICONS_DIR/256x256/apps"
-        # Fallback: використовуємо AppImage як іконку
-        cp "$APP_DIR/LogParser.AppImage" "$ICONS_DIR/256x256/apps/logparser.png" 2>/dev/null || true
-      fi
-      
-      # Очищення тимчасових файлів
-      rm -rf "$TEMP_APPIMAGE"
-    else
-      echo "⚠️  appimagetool не знайдено, створюємо базову структуру іконок"
-      mkdir -p "$ICONS_DIR/256x256/apps"
-      # Fallback: використовуємо AppImage як іконку
-      cp "$APP_DIR/LogParser.AppImage" "$ICONS_DIR/256x256/apps/logparser.png" 2>/dev/null || true
-    fi
-    
-    # Створення .desktop файлу
+    # Створення .desktop файлу з іконкою AppImage
+    echo "🎨 Створення .desktop файлу з іконкою AppImage..."
     DESKTOP_FILE="$APPS_DIR/logparser.desktop"
     cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
 Name=LogParser
 Comment=Аналізатор лог-файлів
 Exec=$APP_DIR/LogParser.AppImage
-Icon=logparser
+Icon=$APP_DIR/LogParser.AppImage
 Terminal=false
 Type=Application
 Categories=Utility;
@@ -388,7 +356,6 @@ EOF
     
     # Оновлення кешів
     command -v update-desktop-database >/dev/null && update-desktop-database || true
-    command -v gtk-update-icon-cache >/dev/null && gtk-update-icon-cache -f ~/.local/share/icons/hicolor || true
     print_success "Ярлик у меню додано"
   fi
 
@@ -407,7 +374,7 @@ EOF
 Name=LogParser
 Comment=Аналізатор лог-файлів
 Exec=$APP_DIR/LogParser.AppImage
-Icon=logparser
+Icon=$APP_DIR/LogParser.AppImage
 Terminal=false
 Type=Application
 Categories=Utility;
