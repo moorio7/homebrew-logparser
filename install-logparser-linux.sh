@@ -349,7 +349,7 @@ Exec=$APP_DIR/LogParser.AppImage
 Icon=logparser
 Terminal=false
 Type=Application
-Categories=Utility;Development;
+Categories=Utility;
 StartupNotify=true
 EOF
     chmod +x "$DESKTOP_FILE" || true
@@ -372,7 +372,7 @@ Exec=$APP_DIR/LogParser.AppImage
 Icon=$HOME/.local/share/icons/hicolor/256x256/apps/logparser.png
 Terminal=false
 Type=Application
-Categories=Utility;Development;
+Categories=Utility;
 StartupNotify=true
 EOF
     }
