@@ -45,53 +45,6 @@ detect_pkgmgr() {
   echo unknown
 }
 
-# Вибір завантажувача: за замовчуванням запитаємо, дефолт — wget, фолбек — curl
-DOWNLOADER="ask"  # ask|wget|curl (можна задати прапорцями)
-
-# Стійкі опції для завантаження
-CURL_OPTS="-L --http1.1 --retry 10 --retry-all-errors -C -"
-WGET_OPTS="-c --tries=20 --waitretry=5 --read-timeout=30"
-
-choose_downloader_if_needed() {
-  if [ "$DOWNLOADER" = "ask" ]; then
-    local def="wget"
-    command -v wget >/dev/null 2>&1 || def="curl"
-    printf "Обрати завантажувач [wget/curl] (за замовчуванням: %s): " "$def"
-    read -r ans || true
-    case "${ans,,}" in
-      wget|w) DOWNLOADER="wget" ;;
-      curl|c) DOWNLOADER="curl" ;;
-      "") DOWNLOADER="$def" ;;
-      *) DOWNLOADER="$def" ;;
-    esac
-  fi
-
-  if [ "$DOWNLOADER" = "wget" ] && ! command -v wget >/dev/null 2>&1; then
-    print_warning "wget не знайдено, використовуємо curl"
-    DOWNLOADER="curl"
-  fi
-  if [ "$DOWNLOADER" = "curl" ] && ! command -v curl >/dev/null 2>&1; then
-    print_warning "curl не знайдено, спробуємо wget"
-    if command -v wget >/dev/null 2>&1; then
-      DOWNLOADER="wget"
-    else
-      print_error "Не знайдено ні curl, ні wget. Встановіть один із них та повторіть."
-      exit 1
-    fi
-  fi
-}
-
-download_file() {
-  # download_file URL OUT_PATH
-  local url="$1" out="$2"
-  case "$DOWNLOADER" in
-    wget)
-      wget $WGET_OPTS -O "$out" "$url" ;;
-    curl|*)
-      curl $CURL_OPTS -o "$out" "$url" ;;
-  esac
-}
-
 install_openssl_if_needed() {
   if command -v openssl >/dev/null 2>&1; then return; fi
   print_message "Встановлення OpenSSL..."
@@ -237,9 +190,6 @@ cd "$TEMP_DIR"
 # URL репозиторію для завантаження
 REPO_URL="https://github.com/moorio7/homebrew-logparser/releases/download/v${VERSION}"
 
-# Опції для curl: редіректи, HTTP/1.1, ретраї, докачка
-CURL_OPTS="-L --http1.1 --retry 10 --retry-all-errors -C -"
-
 # Визначаємо пакетний менеджер
 PMGR=$(detect_pkgmgr)
 
@@ -250,9 +200,6 @@ for arg in "$@"; do
     --deb) MODE="deb" ;;
     --appimage) MODE="appimage" ;;
     --auto) MODE="auto" ;;
-    --wget) DOWNLOADER="wget" ;;
-    --curl) DOWNLOADER="curl" ;;
-    --downloader=*) DOWNLOADER="${arg#*=}" ;;
   esac
 done
 [ -n "${LOGPARSER_MODE:-}" ] && MODE="$LOGPARSER_MODE"
@@ -285,12 +232,9 @@ else
   SHA_FILE="LogParser-${VERSION}-appimage.sha256"
 fi
 
-# Вибір завантажувача (інтерактивно, якщо не задано через прапорці/змінні)
-choose_downloader_if_needed
-
 # Завантаження зашифрованого файлу
 print_message "Завантаження зашифрованого файлу: $ENC_FILE"
-if ! download_file "$REPO_URL/$ENC_FILE" "$ENC_FILE"; then
+if ! curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE"; then
   if [ "$MODE" = "appimage" ]; then
     # Fallback: спробувати DEB, якщо AppImage відсутній
     print_warning "AppImage недоступний для цієї версії, пробуємо DEB..."
@@ -298,7 +242,7 @@ if ! download_file "$REPO_URL/$ENC_FILE" "$ENC_FILE"; then
     ENC_FILE="LogParser-${VERSION}-linux.enc"
     OUT_FILE="LogParser-${VERSION}-linux.deb"
     SHA_FILE="LogParser-${VERSION}-linux.sha256"
-    download_file "$REPO_URL/$ENC_FILE" "$ENC_FILE" || { print_error "Не вдалося завантажити жоден артефакт"; exit 1; }
+    curl -L -o "$ENC_FILE" "$REPO_URL/$ENC_FILE" || { print_error "Не вдалося завантажити жоден артефакт"; exit 1; }
   else
     print_error "Помилка завантаження зашифрованого файлу"
     exit 1
@@ -307,7 +251,7 @@ fi
 
 # Завантаження хеш-файлу для перевірки цілісності (опційно)
 print_message "Завантаження хеш-файлу: $SHA_FILE"
-download_file "$REPO_URL/$SHA_FILE" "$SHA_FILE" || print_warning "Не вдалося завантажити хеш-файл"
+curl -L -o "$SHA_FILE" "$REPO_URL/$SHA_FILE" || print_warning "Не вдалося завантажити хеш-файл"
 
 if [ -f "$SHA_FILE" ]; then
   print_message "Хеш буде перевірено після розшифрування"
@@ -379,13 +323,8 @@ else
     APPS_DIR="$HOME/.local/share/applications"
     ICONS_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
     mkdir -p "$APPS_DIR" "$ICONS_DIR"
-    # Завантажуємо іконку (невеликий файл)
-    ICON_URL="https://raw.githubusercontent.com/moorio7/LogParser/main/icon/icon.png"
-    if [ "$DOWNLOADER" = "wget" ]; then
-      wget -q -O "$ICONS_DIR/logparser.png" "$ICON_URL" || true
-    else
-      curl -sS -L -o "$ICONS_DIR/logparser.png" "$ICON_URL" || true
-    fi
+    # Завантажуємо іконку
+    curl -sSL -o "$ICONS_DIR/logparser.png" "https://raw.githubusercontent.com/moorio7/LogParser/main/icon/icon.png" || true
     DESKTOP_FILE="$APPS_DIR/logparser.desktop"
     cat > "$DESKTOP_FILE" <<EOF
 [Desktop Entry]
