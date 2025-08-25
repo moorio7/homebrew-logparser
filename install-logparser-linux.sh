@@ -166,13 +166,45 @@ create_desktop_from_appimage() {
   
   print_message "Створення .desktop файлу..."
   
-  # Створюємо простий .desktop файл
+  # Спробуємо створити .desktop через AppImage (якщо підтримується)
+  if "$appimage" --appimage-extract-and-run --appimage-desktop-integration >/dev/null 2>&1; then
+    print_success "AppImage створив .desktop файл автоматично"
+    return 0
+  fi
+  
+  # Fallback: створюємо простий .desktop файл
+  print_message "Створення простого .desktop файлу..."
+  
+  # Спробуємо знайти іконку в AppImage
+  local icon_path="logparser"
+  if "$appimage" --appimage-extract --help >/dev/null 2>&1; then
+    local temp_dir=$(mktemp -d)
+    cd "$temp_dir"
+    
+    if "$appimage" --appimage-extract >/dev/null 2>&1; then
+      # Шукаємо іконки
+      for icon in squashfs-root/*.png squashfs-root/*.ico squashfs-root/*.svg; do
+        if [ -f "$icon" ]; then
+          local icon_name=$(basename "$icon")
+          mkdir -p "$HOME/.local/share/icons"
+          cp "$icon" "$HOME/.local/share/icons/$icon_name"
+          icon_path="$HOME/.local/share/icons/$icon_name"
+          break
+        fi
+      done
+    fi
+    
+    cd - >/dev/null
+    rm -rf "$temp_dir"
+  fi
+  
+  # Створюємо .desktop файл
   cat > "$apps_dir/logparser.desktop" << EOF
 [Desktop Entry]
 Name=LogParser
 Comment=Log file analyzer
 Exec=$appimage
-Icon=logparser
+Icon=$icon_path
 Terminal=false
 Type=Application
 Categories=Utility;
@@ -182,7 +214,7 @@ EOF
   
   # Перевірка створення .desktop файлу
   if [ -f "$apps_dir/logparser.desktop" ]; then
-    print_success ".desktop файл створено"
+    print_success ".desktop файл створено з іконкою: $icon_path"
   else
     print_warning ".desktop файл не створено"
     return 1
@@ -432,7 +464,7 @@ else
 
   # Додати ярлик на робочий стіл?
   if prompt_yes_no "Додати ярлик на робочий стіл?"; then
-    local desktop_dir
+    desktop_dir=""
     # Перевіряємо різні можливі шляхи до робочого столу
     if [ -d "${HOME}/Desktop" ]; then
       desktop_dir="${HOME}/Desktop"
