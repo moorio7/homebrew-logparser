@@ -95,37 +95,29 @@ install_fuse2_if_needed() {
   esac
 }
 
-# Мінімальна версія встановлення AppImage (тільки базові утиліти)
+# Стандартне встановлення AppImage
 install_appimage_minimal() {
   local out_file="$1"
-  local app_dir="$HOME/Applications"
   local bin_dir="$HOME/.local/bin"
   
-  print_message "Мінімальне встановлення AppImage..."
+  print_message "Встановлення AppImage..."
   
-  # Створення базових директорій (тільки mkdir - завжди доступний)
-  mkdir -p "$app_dir" "$bin_dir"
+  # Створення директорії для бінарних файлів
+  mkdir -p "$bin_dir"
   
-  # Копіювання AppImage (тільки cp - завжди доступний)
-  if ! cp "$out_file" "$app_dir/LogParser.AppImage"; then
+  # Копіювання AppImage в ~/.local/bin (стандартне місце)
+  if ! cp "$out_file" "$bin_dir/logparser"; then
     print_error "Помилка копіювання AppImage"
     return 1
   fi
   
-  chmod +x "$app_dir/LogParser.AppImage"
-  
-  # Створення простого скрипта-обгортки замість симлінка
-  cat > "$bin_dir/logparser" << EOF
-#!/bin/bash
-exec "$app_dir/LogParser.AppImage" "\$@"
-EOF
   chmod +x "$bin_dir/logparser"
   
-  print_success "AppImage встановлено: $app_dir/LogParser.AppImage"
+  print_success "AppImage встановлено: $bin_dir/logparser"
   print_success "Команда: logparser"
   
-  # Тест запуску без --help
-  test_appimage "$app_dir/LogParser.AppImage" "$bin_dir/logparser"
+  # Тест запуску
+  test_appimage "$bin_dir/logparser"
 }
 
 # Тестування AppImage без --help
@@ -153,11 +145,11 @@ test_appimage() {
     print_success "AppImage працює"
   else
     print_warning "AppImage може мати проблеми. Спробуйте:"
-    print_message "APPIMAGE_EXTRACT_AND_RUN=1 $bin_script"
+    print_message "APPIMAGE_EXTRACT_AND_RUN=1 $appimage"
   fi
 }
 
-# Створення простого .desktop файлу
+# Створення .desktop файлу
 create_desktop_from_appimage() {
   local appimage="$1"
   local apps_dir="$HOME/.local/share/applications"
@@ -165,15 +157,6 @@ create_desktop_from_appimage() {
   mkdir -p "$apps_dir"
   
   print_message "Створення .desktop файлу..."
-  
-  # Спробуємо створити .desktop через AppImage (якщо підтримується)
-  if "$appimage" --appimage-extract-and-run --appimage-desktop-integration >/dev/null 2>&1; then
-    print_success "AppImage створив .desktop файл автоматично"
-    return 0
-  fi
-  
-  # Fallback: створюємо простий .desktop файл
-  print_message "Створення простого .desktop файлу..."
   
   # Спробуємо знайти іконку в AppImage
   local icon_path="logparser"
@@ -454,7 +437,13 @@ else
   install_appimage_minimal "$OUT_FILE"
   
   # Створення .desktop файлу
-  create_desktop_from_appimage "$HOME/Applications/LogParser.AppImage"
+  create_desktop_from_appimage "$HOME/.local/bin/logparser"
+  
+  # Оновлення кешу додатків
+  if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database
+    print_message "Кеш додатків оновлено"
+  fi
   
   # Додати ярлик у меню?
   if prompt_yes_no "Додати ярлик у меню програм?"; then
