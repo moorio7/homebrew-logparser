@@ -157,7 +157,7 @@ test_appimage() {
   fi
 }
 
-# Створення .desktop файлу з вбудованими можливостями AppImage
+# Створення простого .desktop файлу
 create_desktop_from_appimage() {
   local appimage="$1"
   local apps_dir="$HOME/.local/share/applications"
@@ -166,75 +166,30 @@ create_desktop_from_appimage() {
   
   print_message "Створення .desktop файлу..."
   
-  # Спробуємо створити .desktop через AppImage
-  if "$appimage" --appimage-extract-and-run --appimage-desktop-integration >/dev/null 2>&1; then
-    print_success "AppImage створив .desktop файл автоматично"
-    return 0
-  fi
-  
-  # Fallback: автоматичне витягування іконок
-  print_warning "AppImage не створив .desktop. Спробуємо витягти іконки..."
-  local icon_path=$(extract_appimage_icon "$appimage")
-  
-  # Створюємо простий .desktop з витягнутою іконкою
+  # Створюємо простий .desktop файл
   cat > "$apps_dir/logparser.desktop" << EOF
 [Desktop Entry]
 Name=LogParser
 Comment=Log file analyzer
 Exec=$appimage
-Icon=$icon_path
+Icon=logparser
 Terminal=false
 Type=Application
 Categories=Utility;
 EOF
   
   chmod +x "$apps_dir/logparser.desktop"
-  print_success "Простий .desktop файл створено з іконкою: $icon_path"
+  
+  # Перевірка створення .desktop файлу
+  if [ -f "$apps_dir/logparser.desktop" ]; then
+    print_success ".desktop файл створено"
+  else
+    print_warning ".desktop файл не створено"
+    return 1
+  fi
 }
 
-# Автоматичне витягування іконок з AppImage
-extract_appimage_icon() {
-  local appimage="$1"
-  local icon_dir="$HOME/.local/share/icons"
-  
-  mkdir -p "$icon_dir"
-  
-  print_message "Витягування іконки з AppImage..."
-  
-  # Перевіряємо, чи AppImage підтримує --appimage-extract
-  if "$appimage" --appimage-extract --help >/dev/null 2>&1; then
-    local current_dir=$(pwd)
-    local temp_dir=$(mktemp -d)
-    
-    cd "$temp_dir"
-    
-    # Розпаковуємо AppImage (AppImage сам це робить)
-    if "$appimage" --appimage-extract >/dev/null 2>&1; then
-      # Шукаємо іконки в розпакованих файлах
-      local icon_file=""
-      for icon in squashfs-root/*.png squashfs-root/*.ico squashfs-root/*.svg; do
-        if [ -f "$icon" ]; then
-          icon_file="$icon"
-          break
-        fi
-      done
-      
-      # Копіюємо знайдену іконку
-      if [ -n "$icon_file" ]; then
-        local icon_name=$(basename "$icon_file")
-        cp "$icon_file" "$icon_dir/$icon_name"
-        echo "$icon_dir/$icon_name"
-      fi
-    fi
-    
-    # Повертаємось та очищаємо
-    cd "$current_dir"
-    rm -rf "$temp_dir"
-  fi
-  
-  # Fallback: використовуємо стандартну іконку
-  echo "logparser"
-}
+
 
 # Функція для отримання останньої успішно опублікованої версії
 get_last_published_version() {
@@ -477,15 +432,31 @@ else
 
   # Додати ярлик на робочий стіл?
   if prompt_yes_no "Додати ярлик на робочий стіл?"; then
-    DESKTOP_DIR="$HOME/Desktop"
-    mkdir -p "$DESKTOP_DIR"
+    local desktop_dir
+    # Перевіряємо різні можливі шляхи до робочого столу
+    if [ -d "${HOME}/Desktop" ]; then
+      desktop_dir="${HOME}/Desktop"
+    elif [ -d "${HOME}/Рабочий стол" ]; then
+      desktop_dir="${HOME}/Рабочий Стол"
+    elif [ -d "${HOME}/Escritorio" ]; then
+      desktop_dir="${HOME}/Escritorio"
+    else
+      # Створюємо Desktop як fallback
+      desktop_dir="${HOME}/Desktop"
+      mkdir -p "$desktop_dir"
+    fi
     
     # Копіювання .desktop файлу з меню
     if [ -f "$HOME/.local/share/applications/logparser.desktop" ]; then
-      cp "$HOME/.local/share/applications/logparser.desktop" "$DESKTOP_DIR/LogParser.desktop" 2>/dev/null || true
+      if cp "$HOME/.local/share/applications/logparser.desktop" "$desktop_dir/LogParser.desktop"; then
+        chmod +x "$desktop_dir/LogParser.desktop"
+        print_success "Ярлик на робочому столі додано: $desktop_dir"
+      else
+        print_warning "Не вдалося створити ярлик на робочому столі"
+      fi
+    else
+      print_warning ".desktop файл не знайдено, ярлик не створено"
     fi
-    chmod +x "$DESKTOP_DIR/LogParser.desktop" || true
-    print_success "Ярлик на робочому столі додано"
   fi
 fi
 
