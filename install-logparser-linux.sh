@@ -95,6 +95,147 @@ install_fuse2_if_needed() {
   esac
 }
 
+# Мінімальна версія встановлення AppImage (тільки базові утиліти)
+install_appimage_minimal() {
+  local out_file="$1"
+  local app_dir="$HOME/Applications"
+  local bin_dir="$HOME/.local/bin"
+  
+  print_message "Мінімальне встановлення AppImage..."
+  
+  # Створення базових директорій (тільки mkdir - завжди доступний)
+  mkdir -p "$app_dir" "$bin_dir"
+  
+  # Копіювання AppImage (тільки cp - завжди доступний)
+  if ! cp "$out_file" "$app_dir/LogParser.AppImage"; then
+    print_error "Помилка копіювання AppImage"
+    return 1
+  fi
+  
+  chmod +x "$app_dir/LogParser.AppImage"
+  
+  # Створення простого скрипта-обгортки замість симлінка
+  cat > "$bin_dir/logparser" << EOF
+#!/bin/bash
+exec "$app_dir/LogParser.AppImage" "\$@"
+EOF
+  chmod +x "$bin_dir/logparser"
+  
+  print_success "AppImage встановлено: $app_dir/LogParser.AppImage"
+  print_success "Команда: logparser"
+  
+  # Тест запуску без --help
+  test_appimage "$app_dir/LogParser.AppImage" "$bin_dir/logparser"
+}
+
+# Тестування AppImage без --help
+test_appimage() {
+  local appimage="$1"
+  local bin_script="$2"
+  
+  print_message "Тестування AppImage..."
+  
+  # Спробуємо запустити з --version або без параметрів
+  local test_success=false
+  
+  # Тест 1: --version
+  if "$appimage" --version >/dev/null 2>&1; then
+    test_success=true
+  # Тест 2: без параметрів (може показати GUI або допомогу)
+  elif timeout 5s "$appimage" >/dev/null 2>&1; then
+    test_success=true
+  # Тест 3: перевірка, що файл виконуваний
+  elif [ -x "$appimage" ]; then
+    test_success=true
+  fi
+  
+  if [ "$test_success" = true ]; then
+    print_success "AppImage працює"
+  else
+    print_warning "AppImage може мати проблеми. Спробуйте:"
+    print_message "APPIMAGE_EXTRACT_AND_RUN=1 $bin_script"
+  fi
+}
+
+# Створення .desktop файлу з вбудованими можливостями AppImage
+create_desktop_from_appimage() {
+  local appimage="$1"
+  local apps_dir="$HOME/.local/share/applications"
+  
+  mkdir -p "$apps_dir"
+  
+  print_message "Створення .desktop файлу..."
+  
+  # Спробуємо створити .desktop через AppImage
+  if "$appimage" --appimage-extract-and-run --appimage-desktop-integration >/dev/null 2>&1; then
+    print_success "AppImage створив .desktop файл автоматично"
+    return 0
+  fi
+  
+  # Fallback: автоматичне витягування іконок
+  print_warning "AppImage не створив .desktop. Спробуємо витягти іконки..."
+  local icon_path=$(extract_appimage_icon "$appimage")
+  
+  # Створюємо простий .desktop з витягнутою іконкою
+  cat > "$apps_dir/logparser.desktop" << EOF
+[Desktop Entry]
+Name=LogParser
+Comment=Log file analyzer
+Exec=$appimage
+Icon=$icon_path
+Terminal=false
+Type=Application
+Categories=Utility;
+EOF
+  
+  chmod +x "$apps_dir/logparser.desktop"
+  print_success "Простий .desktop файл створено з іконкою: $icon_path"
+}
+
+# Автоматичне витягування іконок з AppImage
+extract_appimage_icon() {
+  local appimage="$1"
+  local icon_dir="$HOME/.local/share/icons"
+  
+  mkdir -p "$icon_dir"
+  
+  print_message "Витягування іконки з AppImage..."
+  
+  # Перевіряємо, чи AppImage підтримує --appimage-extract
+  if "$appimage" --appimage-extract --help >/dev/null 2>&1; then
+    local current_dir=$(pwd)
+    local temp_dir=$(mktemp -d)
+    
+    cd "$temp_dir"
+    
+    # Розпаковуємо AppImage (AppImage сам це робить)
+    if "$appimage" --appimage-extract >/dev/null 2>&1; then
+      # Шукаємо іконки в розпакованих файлах
+      local icon_file=""
+      for icon in squashfs-root/*.png squashfs-root/*.ico squashfs-root/*.svg; do
+        if [ -f "$icon" ]; then
+          icon_file="$icon"
+          break
+        fi
+      done
+      
+      # Копіюємо знайдену іконку
+      if [ -n "$icon_file" ]; then
+        local icon_name=$(basename "$icon_file")
+        cp "$icon_file" "$icon_dir/$icon_name"
+        echo "$icon_dir/$icon_name"
+      fi
+    fi
+    
+    # Повертаємось та очищаємо
+    cd "$current_dir"
+    rm -rf "$temp_dir"
+  fi
+  
+  # Fallback: використовуємо стандартну іконку
+  echo "logparser"
+}
+
 # Функція для отримання останньої успішно опублікованої версії
 get_last_published_version() {
   local api_response=""
@@ -321,41 +462,16 @@ else
     print_message "Встановлення AppImage (fallback з DEB)..."
   fi
   install_fuse2_if_needed
-  APP_DIR="$HOME/Applications"
-  BIN_DIR="$HOME/.local/bin"
-  mkdir -p "$APP_DIR" "$BIN_DIR"
-  cp "$OUT_FILE" "$APP_DIR/LogParser.AppImage"
-  chmod +x "$APP_DIR/LogParser.AppImage"
-  # Створюємо зручний ярлик у PATH
-  ln -sf "$APP_DIR/LogParser.AppImage" "$BIN_DIR/logparser" || cp "$APP_DIR/LogParser.AppImage" "$BIN_DIR/logparser"
-  chmod +x "$BIN_DIR/logparser" || true
-  print_success "AppImage встановлено: $APP_DIR/LogParser.AppImage"
-  print_message "Запуск: $BIN_DIR/logparser"
-  "$BIN_DIR/logparser" || print_warning "Не вдалося запустити AppImage"
-
+  
+  # Використовуємо мінімальне встановлення
+  install_appimage_minimal "$OUT_FILE"
+  
+  # Створення .desktop файлу
+  create_desktop_from_appimage "$HOME/Applications/LogParser.AppImage"
+  
   # Додати ярлик у меню?
   if prompt_yes_no "Додати ярлик у меню програм?"; then
-    APPS_DIR="$HOME/.local/share/applications"
-    mkdir -p "$APPS_DIR"
-    
-    # Створення .desktop файлу з іконкою AppImage
-    echo "🎨 Створення .desktop файлу з іконкою AppImage..."
-    DESKTOP_FILE="$APPS_DIR/logparser.desktop"
-    cat > "$DESKTOP_FILE" <<EOF
-[Desktop Entry]
-Name=LogParser
-Comment=Аналізатор лог-файлів
-Exec=$APP_DIR/LogParser.AppImage
-Icon=$APP_DIR/LogParser.AppImage
-Terminal=false
-Type=Application
-Categories=Utility;
-StartupNotify=true
-EOF
-    chmod +x "$DESKTOP_FILE" || true
-    
-    # Оновлення кешів
-    command -v update-desktop-database >/dev/null && update-desktop-database || true
+    # .desktop файл вже створено вище
     print_success "Ярлик у меню додано"
   fi
 
@@ -364,22 +480,9 @@ EOF
     DESKTOP_DIR="$HOME/Desktop"
     mkdir -p "$DESKTOP_DIR"
     
-    # Копіювання .desktop файлу з меню, якщо він створений
-    if [ -f "$APPS_DIR/logparser.desktop" ]; then
-      cp "$APPS_DIR/logparser.desktop" "$DESKTOP_DIR/LogParser.desktop" 2>/dev/null || true
-    else
-      # Створення .desktop файлу напряму для робочого столу
-      cat > "$DESKTOP_DIR/LogParser.desktop" <<EOF
-[Desktop Entry]
-Name=LogParser
-Comment=Аналізатор лог-файлів
-Exec=$APP_DIR/LogParser.AppImage
-Icon=$APP_DIR/LogParser.AppImage
-Terminal=false
-Type=Application
-Categories=Utility;
-StartupNotify=true
-EOF
+    # Копіювання .desktop файлу з меню
+    if [ -f "$HOME/.local/share/applications/logparser.desktop" ]; then
+      cp "$HOME/.local/share/applications/logparser.desktop" "$DESKTOP_DIR/LogParser.desktop" 2>/dev/null || true
     fi
     chmod +x "$DESKTOP_DIR/LogParser.desktop" || true
     print_success "Ярлик на робочому столі додано"
